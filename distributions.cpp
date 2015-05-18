@@ -24,6 +24,31 @@ colvec draw_normal(colvec mu, mat Sigma_inv){
   return mu + solve(trimatu(R), x);
 }
 
+double density_normal(colved x, colvec mu, mat Sigma_inv){
+/*-------------------------------------------------------
+# RETURNS: 
+#  MV Normal(mu, Sigma_inv) probability density function
+#--------------------------------------------------------
+# ARGUMENTS:
+#  x            point at which density is evaluated
+#  mu           mean vector
+#  Sigma_inv    precision matrix (inverse of cov matrix)
+#--------------------------------------------------------
+# NOTES: 
+#  (1) Parameterized using precision matrix
+#  (2) Intermediate steps calculated in logs for stability
+#-------------------------------------------------------*/
+ int p = Sigma_inv.n_cols;
+ double first = -p * log(2.0 * datum::pi);
+ double val;
+ double sign;
+ double second = log_det(Sigma_inv, val, sign);
+ double third = -as_scalar(trans(x - mu) * Sigma_inv * (x - mu));
+ return exp((first + second + third) / 2.0);
+}
+
+// [[Rcpp::export]]
+mat draw_wishart(int v, mat S){
 /*-------------------------------------------------------
 # RETURNS: 
 #  A draw from the Wishart(v, S) distribution. 
@@ -37,8 +62,6 @@ colvec draw_normal(colvec mu, mat Sigma_inv){
 #  (2) Output is identical to rwish from MCMCpack R
 #      package provided the same seed is used.
 #-------------------------------------------------------*/
-// [[Rcpp::export]]
-mat draw_wishart(int v, mat S){
   RNGScope scope;
   int p = S.n_rows;
   mat D = chol(S, "lower");
@@ -55,19 +78,6 @@ mat draw_wishart(int v, mat S){
   return D.t() * A.t() * A * D;
 }
 
-
-double density_normal(colvec mu, mat Sigma_inv){
-/*-------------------------------------------------------
-# RETURNS: 
-#  MV Normal(mu, Sigma_inv) probability density function
-#--------------------------------------------------------
-# ARGUMENTS:
-#  mu           mean vector
-#  Sigma_inv    precision matrix (inverse of cov matrix)
-#--------------------------------------------------------
-# NOTES: 
-#-------------------------------------------------------*/
-}
 
 double density_wishart(colvec v, mat S){
 /*-------------------------------------------------------

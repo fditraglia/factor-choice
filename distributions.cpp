@@ -6,30 +6,22 @@ using namespace arma;
 
 
 // [[Rcpp::export]]
-colvec draw_normal(colvec mu, mat Sigma){
+colvec draw_normal(colvec mu, mat Sigma_inv){
 /*-------------------------------------------------------
 # RETURNS: 
-#  A draw from a MV Normal(mu, Sigma) distribution 
+#  A draw from a MV Normal(mu, Sigma_inv) distribution 
 #--------------------------------------------------------
 # ARGUMENTS:
-#  mu       mean vector
-#  Sigma    covariance matrix
+#  mu           mean vector
+#  Sigma_inv    precision matrix (inverse of cov matrix)
 #--------------------------------------------------------
-# NOTES: 
-#  (1) Uses eigen-decomposition (not Choleski) to match 
-#      mvrnorm from the MASS package in R. 
-#  (2) Output will *not* match mvrnorm even though the 
-#      same standard normal draws are used: armadillo
-#      and R use different conventions for eigen-decomp.
+# NOTE: parameterized using precision matrix!
 #-------------------------------------------------------*/
   RNGScope scope;
-  int p = Sigma.n_cols;
+  int p = Sigma_inv.n_cols;
   colvec x = rnorm(p);
-  vec eigval;
-  mat eigvec;
-  eig_sym(eigval, eigvec, Sigma);
-  mat A = eigvec * diagmat(sqrt(max(eigval, zeros(p))));
-  return mu + A * x;
+  mat R = chol(Sigma_inv);
+  return mu + solve(trimatu(R), x);
 }
 
 /*-------------------------------------------------------

@@ -84,6 +84,17 @@ mat draw_wishart(int v, mat S){
 
 // [[Rcpp::export]]
 double log_mv_gamma(int p, double a){
+/*-------------------------------------------------------
+# RETURNS: 
+#  Natural logarithm of p-dimensional MV Gamma function
+#--------------------------------------------------------
+# ARGUMENTS:
+#  p     dimension of MV Gamma function
+#  a     argument of MV Gamma function 
+#--------------------------------------------------------
+# NOTES: The multivariate Gamma function appears in the 
+#        normalizing constant for the Wishart distribution
+#-------------------------------------------------------*/
   double lgamma_sum = 0.0;
   for(int j = 1; j <= p; j++){
     lgamma_sum += R::lgammafn(a + 0.5 * (1 - j));

@@ -1,0 +1,128 @@
+\documentclass[12pt]{article}
+\usepackage{amsmath, amssymb}
+\linespread{1.2}
+
+
+
+\begin{document}
+
+
+\section{Model and Likelihood}
+
+Consider a linear $K$-factor model for $D$ assets of the form
+\begin{equation*}
+  y_{it}=\alpha _{d} + \mathbf{f}_{t}' \boldsymbol{\beta}_d + \varepsilon_{it}
+\end{equation*}
+where $d = 1, \hdots, D$ and $t = 1, \hdots, T$ and $\mathbf{f}_{t}'=\left(f_{t1}, \hdots,f_{tK}\right)$ is a $K\times1$ vector.
+This is a special case of the seemingly unrelated regression (SUR) model in which the regressors are \emph{identical} across equations.
+Stacking observations for a given time period across assets, define $\mathbf{y}_t' = (y_{1t}, \hdots, y_{Dt})$ and analogously $\boldsymbol{\varepsilon}_t' = \left( \varepsilon_{t1}, \hdots \varepsilon_{tD} \right)$.
+Now let $\mathbf{x}_t' = (1, \mathbf{f}_t)$ and $\boldsymbol{\gamma}_d' = (\alpha_d, \boldsymbol{\beta}_d')$ so we have
+\begin{equation*}
+  \mathbf{y}_t = X_t \boldsymbol{\gamma} + \boldsymbol{\varepsilon}_t
+\end{equation*}
+where $X_t = I_D \otimes \mathbf{x}_t'$ and $\boldsymbol{\gamma}'= \left( \boldsymbol{\gamma}_1', \hdots, \boldsymbol{\gamma}_D' \right)$. 
+Now, suppose that 
+\begin{equation*}
+  \boldsymbol{\varepsilon}_t|\mathbf{x}_t \sim \mbox{ iid } \mathcal{N}_D(0, \Sigma)
+\end{equation*}
+It follows that 
+\begin{equation*}
+  L(\beta,\Sigma) \propto |\Sigma|^{-T/2} \exp\left[ -\frac{1}{2} \sum_{t=1}^T \left(\mathbf{y}_t - X_t \boldsymbol{\gamma} \right)' \Sigma^{-1} \left(\mathbf{y}_t - X_t \boldsymbol{\gamma} \right)\right]
+\end{equation*}
+We parameterize this problem in terms of the $D\times D$ precision matrix $\Sigma$ and the $D(K+1)\times1$ vector of regression coefficients $\boldsymbol{\gamma}$.
+
+\section{Prior and Posterior Distribution}
+To complete the model we specify a prior distribution on the full collection of parameters $\boldsymbol{\theta} = \left( \boldsymbol{\gamma}, \Omega^{-1} \right)$, namely 
+\begin{equation*}
+  \pi (\boldsymbol{\theta})=\mathcal{N}_{d+p}\left( \gamma |\gamma _{0},G_{0}\right)
+\mathcal{W}_{d}\left( \Omega ^{-1}|\rho _{0},R_{0}\right)
+\end{equation*}%
+This prior is conditionally conjugate with the normal likelihood yielding the posterior distribution
+$Y_{n}=\left( \left\{ y_{t}\right\} ,\left\{ f_{t}\right\} \right)$ 
+\begin{equation*}
+\pi (\theta |Y_{n})\propto \mathcal{N}_{d+p}\left( \gamma |\gamma
+_{0},G_{0}\right) \mathcal{W}_{d}\left( \Omega ^{-1}|\rho _{0},R_{0}\right)
+\prod\limits_{t=1}^{n}\mathcal{N}_{d}(y_{t}|X_{t}\gamma ,\Omega )
+\end{equation*}
+
+\section{MCMC}
+
+We can summarize this posterior distribution by the MCMC\ algorithm of Chib
+and Greenberg (1995). It requires the repeated recursive sampling of the
+following two conditional distributions:%
+\begin{equation*}
+\gamma |Y_{n},\Omega ^{-1}\sim \mathcal{N}_{d+p}\left( \hat{\gamma}%
+,G_{n}\right)
+\end{equation*}%
+where
+\begin{align*}
+\hat{\gamma}& =G_{n}\left( G_{0}^{-1}\gamma _{0}+\sum_{t=1}^{n}X_{t}^{\prime
+}\Omega ^{-1}y_{t}\right) \\
+G_{n}& =\left( G_{0}^{-1}+\sum_{t=1}^{n}X_{t}^{\prime }\Omega
+^{-1}X_{t}\right) ^{-1}
+\end{align*}%
+and
+\begin{equation*}
+\Omega ^{-1}|Y_{n},\gamma \sim \mathcal{W}_{d}\left( \rho _{0}+n,\left(
+R_{0}^{-1}+\sum_{t=1}^{n}\left( y_{t}-X_{t}\gamma \right) \left(
+y_{t}-X_{t}\gamma \right) ^{\prime }\right) ^{-1}\right)
+\end{equation*}
+
+\section{Marginal likelihood}
+
+The marginal likelihood is available by the method of Chib (1995). From the
+Chib (1995) identity, we have
+\begin{equation*}
+\log m\left( \left\{ y_{t}\right\} \right) =\log \pi \left( \gamma ^{\ast
+}\right) +\log \pi \left( \Omega ^{-1\ast }\right) +\sum_{t=1}^{n}\log
+p\left( y_{t}|X_{t}\gamma ^{\ast },\Omega ^{\ast }\right) -\log \pi \left(
+\gamma ^{\ast },\Omega ^{-1\ast }|Y_{n}\right)
+\end{equation*}%
+where the last term is calculated as%
+\begin{equation*}
+\pi \left( \Omega ^{-1\ast }|Y_{n}\right) \times \pi \left( \gamma ^{\ast
+}|Y_{n},\Omega ^{-1\ast }\right)
+\end{equation*}%
+in which the first term is estimated by averaging the full-conditional
+Wishart density over the draws $\left\{ \gamma ^{(g)}\right\} _{g=1}^{G}$
+from the main MCMC run
+\begin{equation*}
+\pi \left( \Omega ^{-1\ast }|Y_{n}\right) =\frac{1}{G}\sum_{g=1}^{G}\mathcal{%
+W}_{d}\left( \Omega ^{-1\ast }|\rho _{0}+n,\left(
+R_{0}^{-1}+\sum_{t=1}^{n}\left( y_{t}-X_{t}\gamma ^{(g)}\right) \left(
+y_{t}-X_{t}\gamma ^{(g)}\right) ^{\prime }\right) ^{-1}\right)
+\end{equation*}%
+and the second term $\pi \left( \gamma ^{\ast }|Y_{n},\Omega ^{-1\ast
+}\right) $ is available directly as%
+\begin{equation*}
+\pi (\gamma ^{\ast }|Y_{n},\Omega ^{-1\ast })=\mathcal{N}_{d+p}\left( \gamma
+^{\ast }|\hat{\gamma}^{\ast },G_{n}^{\ast }\right)
+\end{equation*}%
+where%
+\begin{align*}
+\hat{\gamma}^{\ast }& =G_{n}^{\ast }\left( G_{0}^{-1}\gamma
+_{0}+\sum_{t=1}^{n}X_{t}^{\prime }\Omega ^{-1\ast }y_{t}\right)  \\
+G_{n}^{\ast }& =\left( G_{0}^{-1}+\sum_{t=1}^{n}X_{t}^{\prime }\Omega
+^{-1\ast }X_{t}\right) ^{-1}
+\end{align*}
+
+\section{Prediction}
+
+Suppose we are interested in predicting the cross-section of returns $y_{n+1}
+$ at time $(n+1)$. The Bayes prediction density of these returns,
+conditioned on the data $Y_{n+1}$ and the factors $f_{n+1}$, is given by%
+\begin{equation*}
+p(y_{n+1}|Y_{n},f_{n+1})=\int_{\gamma ,\Omega ^{-1}}\mathcal{N}_{d}\left(
+y_{n+1}|X_{n+1}\gamma ,\Omega \right) d\pi \left( \gamma ,\Omega
+^{-1}|Y_{n}\right)
+\end{equation*}%
+which is estimated by the ergodic Monte Carlo average
+\begin{equation*}
+p(y_{n+1}|Y_{n},f_{n+1})=\frac{1}{G}\sum_{g=1}^{G}\mathcal{N}_{d}\left(
+y_{n+1}|X_{n+1}\gamma ^{(g)},\Omega ^{(g)}\right)
+\end{equation*}%
+with the MCMC draws $\left\{ \gamma ^{(g)},\Omega ^{(g)}\right\} $ from the
+posterior distribution.
+
+\end{document}
+

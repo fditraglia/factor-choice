@@ -127,10 +127,3 @@ double density_wishart(mat X, int v, mat S){
   double term5 = -1.0 * log_mv_gamma(p, 0.5 * v);
   return exp(term1 + term2 + term3 + term4 + term5);
 }
-
-
-
-
-
-
-

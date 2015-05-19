@@ -82,10 +82,21 @@ mat draw_wishart(int v, mat S){
 }
 
 
-//double density_wishart(colvec v, mat S){
+// [[Rcpp::export]]
+double log_mv_gamma(int p, double a){
+  double lgamma_sum = 0.0;
+  for(int j = 1; j <= p; j++){
+    lgamma_sum += R::lgammafn(a + 0.5 * (1 - j));
+  }
+  return 0.25 * p * (p - 1) * log(datum::pi) + lgamma_sum; 
+}
+
+
+// [[Rcpp::export]]
+double density_wishart(mat X, int v, mat S){
 /*-------------------------------------------------------
 # RETURNS: 
-#  Wishart(v, S) probability density function
+#  Wishart(v, S) density evaluated at X
 #--------------------------------------------------------
 # ARGUMENTS:
 #  v     degrees of freedom
@@ -93,4 +104,22 @@ mat draw_wishart(int v, mat S){
 #--------------------------------------------------------
 # NOTES: 
 #-------------------------------------------------------*/
-//}
+  int p = S.n_rows;
+  double X_val, X_sign;
+  log_det(X_val, X_sign, X);
+  double term1 = 0.5 * (v - p - 1) * X_val;
+  double term2 = -0.5 * trace(solve(trimatl(S), trimatl(X)));
+  double term3 = -0.5 * v * p * log(2.0);
+  double S_val, S_sign;
+  log_det(S_val, S_sign, S);
+  double term4 = -0.5 * v * S_val;
+  double term5 = -1.0 * log_mv_gamma(p, 0.5 * v);
+  return exp(term1 + term2 + term3 + term4 + term5);
+}
+
+
+
+
+
+
+

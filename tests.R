@@ -24,3 +24,7 @@ qqnorm(rowSums(foo))
 foo <- density_normal(x = c(1, 1), mu = m, Sigma_inv = M_inv)
 bar <- dmvnorm(x = c(1, 1), mean = m, sigma = M)
 all.equal(foo, bar)
+
+foo <- dwish(3 * M_inv, 5, M_inv) 
+bar <- density_wishart(3 * M_inv, 5, M_inv)
+all.equal(foo, bar)

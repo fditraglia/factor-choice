@@ -24,7 +24,8 @@ colvec draw_normal(colvec mu, mat Sigma_inv){
   return mu + solve(trimatu(R), x);
 }
 
-double density_normal(colved x, colvec mu, mat Sigma_inv){
+// [[Rcpp::export]]
+double density_normal(colvec x, colvec mu, mat Sigma_inv){
 /*-------------------------------------------------------
 # RETURNS: 
 #  MV Normal(mu, Sigma_inv) probability density function
@@ -39,12 +40,13 @@ double density_normal(colved x, colvec mu, mat Sigma_inv){
 #  (2) Intermediate steps calculated in logs for stability
 #-------------------------------------------------------*/
  int p = Sigma_inv.n_cols;
- double first = -p * log(2.0 * datum::pi);
+ double first = -0.5 * p * log(2.0 * datum::pi);
  double val;
  double sign;
- double second = log_det(Sigma_inv, val, sign);
- double third = -as_scalar(trans(x - mu) * Sigma_inv * (x - mu));
- return exp((first + second + third) / 2.0);
+ log_det(val, sign, Sigma_inv);
+ double second = 0.5 * val;
+ double third = -0.5 * as_scalar(trans(x - mu) * Sigma_inv * (x - mu));
+ return exp(first + second + third);
 }
 
 // [[Rcpp::export]]
@@ -64,22 +66,23 @@ mat draw_wishart(int v, mat S){
 #-------------------------------------------------------*/
   RNGScope scope;
   int p = S.n_rows;
-  mat D = chol(S, "lower");
+  mat L = chol(S, "lower");
   mat A(p,p, fill::zeros);
   for(int i = 0; i < p; i++){
     int df = v - (i + 1) + 1; //zero-indexing
     A(i,i) = sqrt(R::rchisq(df)); 
   }
-  for(int col = 1; col < p; col++){
-    for(int row = 0; row < col; row++){
+  for(int row = 1; row < p; row++){
+    for(int col = 0; col < row; col++){
       A(row, col) = R::rnorm(0,1);
     }
   }
-  return D.t() * A.t() * A * D;
+  mat LA = trimatl(trimatl(L) * trimatl(A));
+  return LA * LA.t();
 }
 
 
-double density_wishart(colvec v, mat S){
+//double density_wishart(colvec v, mat S){
 /*-------------------------------------------------------
 # RETURNS: 
 #  Wishart(v, S) probability density function
@@ -90,4 +93,4 @@ double density_wishart(colvec v, mat S){
 #--------------------------------------------------------
 # NOTES: 
 #-------------------------------------------------------*/
-}
+//}

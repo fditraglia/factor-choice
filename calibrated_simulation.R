@@ -50,4 +50,13 @@ valueIndustry <- SURidentical(FF3, Industry10, value)
 equalIndustry <- SURidentical(FF3, Industry10, equal)
 
 set.seed(8372)
-simValueSize <- SURsim(FF3, Size10, value, nu = 4)
+
+# Test Run
+alphaTrue <- valueSize$Gamma[,1]
+testSim <- function(df){
+  simValueSize <- SURsim(FF3, Size10, value, nu = df)
+  simData <- with(simValueSize, cbind(x, y))
+  return(SURidentical(FF3, Size10, data.frame(simData))$Gamma[,1])
+}
+testy <- replicate(100, testSim(df = 2))
+rowMeans(testy) - alphaTrue

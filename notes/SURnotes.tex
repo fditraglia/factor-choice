@@ -1,4 +1,5 @@
 \documentclass[12pt]{article}
+\usepackage{enumerate}
 \usepackage{amsmath, amssymb}
 \linespread{1.2}
 
@@ -16,59 +17,84 @@ Consider a linear $K$-factor model for $D$ assets of the form
 where $d = 1, \hdots, D$ and $t = 1, \hdots, T$ and $\mathbf{f}_{t}'=\left(f_{t1}, \hdots,f_{tK}\right)$ is a $K\times1$ vector.
 This is a special case of the seemingly unrelated regression (SUR) model in which the regressors are \emph{identical} across equations.
 Stacking observations for a given time period across assets, define $\mathbf{y}_t' = (y_{1t}, \hdots, y_{Dt})$ and analogously $\boldsymbol{\varepsilon}_t' = \left( \varepsilon_{t1}, \hdots \varepsilon_{tD} \right)$.
-Now let $\mathbf{x}_t' = (1, \mathbf{f}_t)$ and $\boldsymbol{\gamma}_d' = (\alpha_d, \boldsymbol{\beta}_d')$ so we have
+Now let $\mathbf{x}_t' = (1, \mathbf{f}_t')$ and $\boldsymbol{\gamma}_d' = (\alpha_d, \boldsymbol{\beta}_d')$ so we have
 \begin{equation*}
   \mathbf{y}_t = X_t \boldsymbol{\gamma} + \boldsymbol{\varepsilon}_t
 \end{equation*}
 where $X_t = I_D \otimes \mathbf{x}_t'$ and $\boldsymbol{\gamma}'= \left( \boldsymbol{\gamma}_1', \hdots, \boldsymbol{\gamma}_D' \right)$. 
 Now, suppose that 
 \begin{equation*}
-  \boldsymbol{\varepsilon}_t|\mathbf{x}_t \sim \mbox{ iid } \mathcal{N}_D(0, \Sigma)
+  \boldsymbol{\varepsilon}_t|\mathbf{x}_t \sim \mbox{ iid } \mathcal{N}_D(0, \Omega^{-1})
 \end{equation*}
-It follows that 
+Let $Y_T$ denote the full data sample, i.e.\ $\left\{ \mathbf{y}_t, \mathbf{x}_t \right\}_{t=1}^T$.
+Then the likelihood is 
 \begin{equation*}
-  L(\beta,\Sigma) \propto |\Sigma|^{-T/2} \exp\left[ -\frac{1}{2} \sum_{t=1}^T \left(\mathbf{y}_t - X_t \boldsymbol{\gamma} \right)' \Sigma^{-1} \left(\mathbf{y}_t - X_t \boldsymbol{\gamma} \right)\right]
+  \pi(\boldsymbol{\gamma},\Omega^{-1}|Y_T) \propto |\Omega^{-1}|^{T/2} \exp\left[ -\frac{1}{2} \sum_{t=1}^T \left(\mathbf{y}_t - X_t \boldsymbol{\gamma} \right)' \Omega^{-1} \left(\mathbf{y}_t - X_t \boldsymbol{\gamma} \right)\right]
 \end{equation*}
-We parameterize this problem in terms of the $D\times D$ precision matrix $\Sigma$ and the $D(K+1)\times1$ vector of regression coefficients $\boldsymbol{\gamma}$.
+where we parameterize this problem in terms of the $D\times D$ \emph{precision} matrix $\Omega^{-1}$ and the $p\times1$ vector of regression coefficients $\boldsymbol{\gamma}$, where $p = D(K+1)$.
 
 \section{Prior and Posterior Distribution}
-To complete the model we specify a prior distribution on the full collection of parameters $\boldsymbol{\theta} = \left( \boldsymbol{\gamma}, \Omega^{-1} \right)$, namely 
+To complete the model we specify the following prior distribution
 \begin{equation*}
-  \pi (\boldsymbol{\theta})=\mathcal{N}_{d+p}\left( \gamma |\gamma _{0},G_{0}\right)
-\mathcal{W}_{d}\left( \Omega ^{-1}|\rho _{0},R_{0}\right)
-\end{equation*}%
-This prior is conditionally conjugate with the normal likelihood yielding the posterior distribution
-$Y_{n}=\left( \left\{ y_{t}\right\} ,\left\{ f_{t}\right\} \right)$ 
+  \pi (\boldsymbol{\gamma},\Omega^{-1})=\mathcal{N}_{p}\left( \boldsymbol{\gamma} |\boldsymbol{\gamma_{0}},G_{0}\right)
+\mathcal{W}_{D}\left(\Omega ^{-1}|\rho_{0}, R_{0}\right)
+\end{equation*}
+This prior is conditionally conjugate with the normal likelihood.
+In particular, we have 
+$\boldsymbol{\gamma}|\Omega^{-1},Y_T \sim \mathcal{N}_p\left( \bar{\boldsymbol{\gamma}},G_T \right)$
+where
+\begin{eqnarray*}
+  G_T &=& \left[ G_0^{-1} + \sum_{t=1}^T X_t' \Omega^{-1} X_t \right]^{-1}\\
+  \bar{\boldsymbol{\gamma}} &=& G_T \left[ G_0^{-1}\boldsymbol{\gamma}_0 + \sum_{t=1}^{T} X_t'\Omega^{-1}\mathbf{y}_t \right]
+\end{eqnarray*}
+and
+$\Omega^{-1}|Y_T \sim \mathcal{W}_D\left(\rho_0 + T, R_T \right)$
+where
 \begin{equation*}
-\pi (\theta |Y_{n})\propto \mathcal{N}_{d+p}\left( \gamma |\gamma
-_{0},G_{0}\right) \mathcal{W}_{d}\left( \Omega ^{-1}|\rho _{0},R_{0}\right)
-\prod\limits_{t=1}^{n}\mathcal{N}_{d}(y_{t}|X_{t}\gamma ,\Omega )
+  R_T = \left[ R_0^{-1} + \sum_{t=1}^{T} \left( \mathbf{y}_t - X_t \boldsymbol{\gamma} \right)\left( \mathbf{y}_t - X_t \boldsymbol{\gamma} \right)' \right]^{-1}
 \end{equation*}
 
 \section{MCMC}
+Using the full set of conditional posteriors, given in the preceding section, we can simulate from the joint posterior for this model using a Gibbs sampler:
+\begin{enumerate}
+  \item Select a starting value $\Omega^{-1(0)}$ for the precision matrix.
+  \item Draw $\boldsymbol{\gamma}^{(1)} \sim \mathcal{N}\left( \bar{\boldsymbol{\gamma}}^{(1)}, G_T^{(1)}\right)$ where
+    \begin{eqnarray*}
+      G_T^{(1)} &=& \left[ G_0^{-1} + \sum_{t=1}^T X_t' \Omega^{-1(0)} X_t \right]^{-1}\\
+      \bar{\boldsymbol{\gamma}}^{(1)} &=& G_T^{(1)} \left[ G_0^{-1}\boldsymbol{\gamma}_0 + \sum_{t=1}^{T} X_t'\Omega^{-1(0)}\mathbf{y}_t \right]
+    \end{eqnarray*}
+  \item Draw $\Omega^{-1(1)} \sim \mathcal{W}_D\left(\rho_T, R_T^{(1)}\right)$ where
+    \begin{equation*}
+      R_T^{(1)} = \left[ R_0^{-1} + \sum_{t=1}^{T} \left( \mathbf{y}_t - X_t \boldsymbol{\gamma}^{(1)} \right)\left( \mathbf{y}_t - X_t \boldsymbol{\gamma}^{(1)} \right)' \right]^{-1}
+    \end{equation*}
+  \item Repeat the preceding two steps a total of $G$ times.
+    In the $g$th iteration:
+    \begin{enumerate}[(i)]
+       \item Draw $\boldsymbol{\gamma}^{(g)} \sim \mathcal{N}\left( \bar{\boldsymbol{\gamma}}^{(g)}, G_T^{(g)}\right)$ where
+    \begin{eqnarray*}
+      G_T^{(g)} &=& \left[ G_0^{-1} + \sum_{t=1}^T X_t' \Omega^{-1(g-1)} X_t \right]^{-1}\\
+      \bar{\boldsymbol{\gamma}}^{(g)} &=& G_T^{(g)} \left[ G_0^{-1}\boldsymbol{\gamma}_0 + \sum_{t=1}^{T} X_t'\Omega^{-1(g-1)}\mathbf{y}_t \right]
+    \end{eqnarray*}
+       \item Draw $\Omega^{-1(g)} \sim \mathcal{W}_D\left(\rho_T, R_T^{(g)}\right)$ where
+    \begin{equation*}
+      R_T^{(g)} = \left[ R_0^{-1} + \sum_{t=1}^{T} \left( \mathbf{y}_t - X_t \boldsymbol{\gamma}^{(g)} \right)\left( \mathbf{y}_t - X_t \boldsymbol{\gamma}^{(g)} \right)' \right]^{-1}
+    \end{equation*}
+    \end{enumerate}
+  \item Discard the first $B$ draws.
+\end{enumerate}
+Note that in iteration $g$, $G_T^{(g)}$ and $\bar{\boldsymbol{\gamma}}^{(g)}$ are calculated using $\Omega^{-1(g-1)}$ while $R_T^{(g)}$ is calculated using $\boldsymbol{\gamma}^{(0)}$.
+This is because we choose to initialize the sample with a starting value $\Omega^{-1(0)}$ for the precision matrix rather than for the vector of regression coefficients.
 
-We can summarize this posterior distribution by the MCMC\ algorithm of Chib
-and Greenberg (1995). It requires the repeated recursive sampling of the
-following two conditional distributions:%
-\begin{equation*}
-\gamma |Y_{n},\Omega ^{-1}\sim \mathcal{N}_{d+p}\left( \hat{\gamma}%
-,G_{n}\right)
-\end{equation*}%
-where
-\begin{align*}
-\hat{\gamma}& =G_{n}\left( G_{0}^{-1}\gamma _{0}+\sum_{t=1}^{n}X_{t}^{\prime
-}\Omega ^{-1}y_{t}\right) \\
-G_{n}& =\left( G_{0}^{-1}+\sum_{t=1}^{n}X_{t}^{\prime }\Omega
-^{-1}X_{t}\right) ^{-1}
-\end{align*}%
-and
-\begin{equation*}
-\Omega ^{-1}|Y_{n},\gamma \sim \mathcal{W}_{d}\left( \rho _{0}+n,\left(
-R_{0}^{-1}+\sum_{t=1}^{n}\left( y_{t}-X_{t}\gamma \right) \left(
-y_{t}-X_{t}\gamma \right) ^{\prime }\right) ^{-1}\right)
-\end{equation*}
+\section{Numerical Details for the Gibbs Sampler}
 
-\section{Marginal likelihood}
+
+\paragraph{Drawing from a Normal Distribution}
+Parameterize in terms of the precision matrix.
+
+\paragraph{Drawing from a Wishart Distribution}
+Use the Bartlett Decomposition.
+
+\section{Calculating the Marginal likelihood}
 
 The marginal likelihood is available by the method of Chib (1995). From the
 Chib (1995) identity, we have

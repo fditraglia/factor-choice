@@ -88,11 +88,92 @@ This is because we choose to initialize the sample with a starting value $\Omega
 \section{Numerical Details for the Gibbs Sampler}
 
 
-\paragraph{Drawing from a Normal Distribution}
+\subsection{Drawing from a Normal Distribution}
 Parameterize in terms of the precision matrix.
 
-\paragraph{Drawing from a Wishart Distribution}
+\subsection{Drawing from a Wishart Distribution}
 Use the Bartlett Decomposition.
+
+\subsection{Efficient Calculation of $R_T$}
+In the second step of each iteration we compute 
+$\left( R_0^{-1} + \sum_{t=1}^{T} \hat{\boldsymbol{\varepsilon}}_t\hat{\boldsymbol{\varepsilon}}_t'\right)^{-1}$ 
+where 
+$\hat{\boldsymbol{\varepsilon}}_t=\mathbf{y}_t - X_t \boldsymbol{\gamma}$.
+Since $R_0$ is simply the prior scale matrix for $\Omega^{-1}$ and hence remains unchanged during the iterations, we can pre-compute it and store the result before starting the sampler.
+Since $X_t$ is a sparse matrix, there is a much more efficient and compact way to compute the sum of outer products of residuals.
+Define:
+\begin{equation*}
+  \widetilde{Y} = \left[
+  \begin{array}{c}
+    \mathbf{y}_1'\\
+    \vdots \\
+    \mathbf{y}_T'
+  \end{array}
+\right], \quad \widetilde{X} = \left[
+\begin{array}{c}
+  \mathbf{x}_{1}' \\
+  \vdots \\
+  \mathbf{x}_{T}' 
+\end{array}
+\right], \quad \Gamma = \left[
+\begin{array}{ccc}
+  \boldsymbol{\gamma}_1 & \cdots & \boldsymbol{\gamma}_D
+\end{array}
+\right], \quad \hat{\boldsymbol{\varepsilon}} = \left[
+\begin{array}{c}
+  \hat{\boldsymbol{\varepsilon}}_1' \\
+  \vdots \\
+  \hat{\boldsymbol{\varepsilon}}_T'
+\end{array}
+\right]
+\end{equation*}
+so that $\hat{\boldsymbol{\varepsilon}} = \widetilde{Y} - \widetilde{X} \Gamma$.
+Note that the vector of regression coefficients $\boldsymbol{\gamma}$ is the vec of the \emph{matrix} of regression coefficients $\Gamma$. 
+Thus, expressed in terms of dense matrix operations
+\begin{equation*}
+  R_T^{-1} =  R_0^{-1} + \left( \widetilde{Y} - \widetilde{X} \Gamma \right)'\left( \widetilde{Y} - \widetilde{X} \Gamma \right)
+\end{equation*}
+The final step is to invert this sum (which is positive definite) to calculate $R_T$.
+Note that the Matrix Inversion Lemma (Sherman-Morrison-Woodbury Formula) does \emph{not} simplify this calculation unless $D > T$.
+
+\subsection{Efficient Calculation of $G_T$}
+Because we parameterize our multivariate normal sampler in terms of the \emph{precision} matrix rather than the covariance matrix, we work with the \emph{inverse} of $G_T$, namely
+\begin{equation*}
+  G_T^{-1} =  G_0^{-1} + \sum_{t=1}^T X_t' \Omega^{-1} X_t 
+\end{equation*}
+Since it is simply the prior precision matrix for the vector $\boldsymbol{\gamma}$ of regression coefficients we can pre-compute $G_0$ (assuming that we elicit a prior in terms of the covariance matrix).
+Now, the sum over $X_t' \Omega X_t$ can in fact be simplified using the properties of the Kronecker product.\footnote{See, e.g., Horn and Johnson (1994) Chapter 4.2.}
+Recall that $X_t = I_D \otimes \mathbf{x}_t$.
+Since $\left( A\otimes B \right)' = A' \otimes B'$, 
+\begin{equation*}
+  X_t' \Omega^{-1} X_t = \left( I_D \otimes \mathbf{x}_t \right) \Omega^{-1}X_t
+\end{equation*}
+Since $\Omega^{-1}X_t = \left( \Omega^{-1}X_t \right) \otimes 1$, $\Omega^{-1} = \Omega^{-1}\otimes 1$, and $(A \otimes B)(C \otimes D) = AC \otimes BD$, provided that everything is conformable, we have
+\begin{eqnarray*}
+  \left( I_D \otimes \mathbf{x}_t \right) \Omega^{-1}X_t &=&  \left( I_D \otimes \mathbf{x}_t \right) (\Omega^{-1}X_t \otimes 1)\\
+  &=&  \Omega^{-1} X_t \otimes \mathbf{x}_t = \left[\Omega^{-1} (I_D \otimes \mathbf{x}_t') \right]\otimes \mathbf{x}_t \\
+  &=& \left[(\Omega^{-1} \otimes 1)(I_D \otimes \mathbf{x}_t') \right]\otimes \mathbf{x}_t \\
+  &=& \Omega^{-1} \otimes \mathbf{x}_t' \otimes \mathbf{x}_t
+\end{eqnarray*}
+Finally, since  $A \otimes (B + C) = A\otimes B + A \otimes C$,
+\begin{equation*}
+  \sum_{t=1}^{T} X_t' \Omega^{-1} X_t = \sum_{t=1}^{T} \Omega^{-1} \otimes \mathbf{x}_t' \otimes \mathbf{x}_t = \Omega^{-1} \otimes \left(\sum_{t=1}^T  \mathbf{x}_t' \otimes \mathbf{x}_t \right)
+\end{equation*}
+This is an extremely useful simplification: because $\sum_{t=1}^T  \mathbf{x}_t' \otimes \mathbf{x}_t$ involves neither $\Omega^{-1}$ nor $\boldsymbol{\gamma}$, only the data, we can pre-compute this quantity.
+In fact, there is one final simplification that makes this quantity even simpler. 
+By writing out the definition of the Kronecker Product, we see that $\mathbf{x}_t' \otimes \mathbf{x}_t = \mathbf{x}_t \mathbf{x}_t'$
+and hence
+\begin{equation*}
+  \sum_{t=1}^{T} X_t' \Omega^{-1} X_t = \Omega^{-1} \otimes \left( \sum_{t=1}^T \mathbf{x}_t \mathbf{x}_t' \right) = \Omega^{-1} \otimes \widetilde{X}' \widetilde{X}
+\end{equation*}
+where $\widetilde{X}' = \left[
+\begin{array}{ccc}
+  \mathbf{x}_1 & \cdots & \mathbf{x}_T
+\end{array}
+\right]$.
+Thus, we have $G_T^{-1} = G_{0}^{-1} + \Omega^{-1} \otimes \widetilde{X}'\widetilde{X}$.
+\subsection{Efficient Calculation of $\bar{\gamma}$}
+
 
 \section{Calculating the Marginal likelihood}
 

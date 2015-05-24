@@ -88,12 +88,6 @@ This is because we choose to initialize the sample with a starting value $\Omega
 \section{Numerical Details for the Gibbs Sampler}
 
 
-\subsection{Drawing from a Normal Distribution}
-Parameterize in terms of the precision matrix.
-
-\subsection{Drawing from a Wishart Distribution}
-Use the Bartlett Decomposition.
-
 \subsection{Efficient Calculation of $R_T$}
 In the second step of each iteration we compute 
 $\left( R_0^{-1} + \sum_{t=1}^{T} \hat{\boldsymbol{\varepsilon}}_t\hat{\boldsymbol{\varepsilon}}_t'\right)^{-1}$ 
@@ -172,8 +166,67 @@ where $\widetilde{X}' = \left[
 \end{array}
 \right]$.
 Thus, we have $G_T^{-1} = G_{0}^{-1} + \Omega^{-1} \otimes \widetilde{X}'\widetilde{X}$.
-\subsection{Efficient Calculation of $\bar{\gamma}$}
 
+\subsection{Efficient Calculation of $\bar{\gamma}$}
+The vector $\bar{\boldsymbol{\gamma}}$ is constructed from several pieces.
+The first is $G_0^{-1} \gamma_0$, the solution to the linear system $G_0
+\mathbf{v} = \gamma_0$.
+Since this piece depends only on the prior, we can pre-compute it.
+The next piece is the sum $\sum_{t=1}^{T} X_t' \Omega^{-1} \mathbf{y}_t$.
+We we noted above, $X_t$ is sparse so there is a more efficient way to compute this quantity.
+Indeed, while this is far from obvious at first glance, it is possible to \emph{factor} $\Omega^{-1}$ outside of the sum using some clever matrix operations, allowing us to drastically reduce the computational complexity of the sampler.
+To accomplish this simplification we combine the definition of $X_t$ as $I_D \otimes \mathbf{x}_t'$ with two properties of the Kronecker Product, namely:
+\begin{equation*}
+  \left( A \otimes B \right)\left( C \otimes D \right) =  AC \otimes BD\\
+\end{equation*}
+which holds provided that the respective matrices are conformable and
+\begin{equation*}
+  \mbox{vec}\left( AB \right) = \left( B' \otimes I_k \right) \mbox{vec}(A)
+\end{equation*}
+where $A$ is $k\times \ell$ and $B$ is $\ell \times m$.
+Applying the first property twice in succession followed by the second property, we find that
+\begin{eqnarray*}
+  X_t' \Omega^{-1} \mathbf{y}_t &=&  \left( I_D \otimes \mathbf{x}_t' \right)' \Omega^{-1} \mathbf{y}_t  = \left( I_D \otimes \mathbf{x}_t \right)\Omega^{-1}\mathbf{y}_t \\
+  &=& \left( I_D \otimes \mathbf{x}_t \right)\left( \Omega^{-1} \mathbf{y}_t \otimes 1 \right) = I_D \Omega^{-1} \mathbf{y}_t \otimes \mathbf{x}_t 1\\
+  &=&  \Omega^{-1}\mathbf{y}_t \otimes \mathbf{x}_t = \left[\left( \Omega^{-1}\mathbf{y}_t \right)1\right] \otimes \left[I_{K+1} \mathbf{x}_t\right] \\
+  &=& \left( \Omega^{-1} \mathbf{y}_t \otimes I_{K+1} \right)\left( 1 \otimes \mathbf{x}_t \right)\\
+  &=& \left( \left[\Omega^{-1} \mathbf{y}_t\right] \otimes I_{K+1}\right) \mathbf{x}_t = \left( \left[\mathbf{y}_t'\Omega^{-1} \right]' \otimes I_{K+1}\right) \mbox{vec}(\mathbf{x}_t)\\
+  &=& \mbox{vec}\left( \mathbf{x}_t \mathbf{y}_t' \Omega^{-1} \right)
+\end{eqnarray*}
+where we have used the fact that $\mbox{vec}\left( \mathbf{x}_t \right) = \mathbf{x}_t$.
+Finally, since we can interchange the $\mbox{vec}$ summation operations,
+\begin{eqnarray*}
+  \sum_{t=1}^{T} \mbox{vec}\left( \mathbf{x}_t \mathbf{y}_t' \Omega^{-1} \right) &=&  \mbox{vec}\left[ \sum_{t=1}^{T} \mathbf{x}_t \mathbf{y}_t' \Omega^{-1} \right] =  \mbox{vec}\left[ \left(\sum_{t=1}^{T} \mathbf{x}_t \mathbf{y}_t' \right)\Omega^{-1} \right] \\
+  &=& \mbox{vec}\left( \widetilde{X}' \widetilde{Y} \Omega^{-1} \right)
+\end{eqnarray*}
+where, as above, 
+\begin{equation*}
+  \widetilde{Y} = \left[
+  \begin{array}{c}
+    \mathbf{y}_1'\\
+    \vdots \\
+    \mathbf{y}_T'
+  \end{array}
+\right], \quad \widetilde{X} = \left[
+\begin{array}{c}
+  \mathbf{x}_{1}' \\
+  \vdots \\
+  \mathbf{x}_{T}' 
+\end{array}
+\right]
+\end{equation*}
+Thus we see that
+\begin{equation*}
+  \bar{\boldsymbol{\gamma}} = G_T \left[ G_0^{-1}\boldsymbol{\gamma}_0 +\mbox{vec}\left( \widetilde{X}' \widetilde{Y} \Omega^{-1} \right) \right]
+\end{equation*}
+Because it does not change between iterations, we can pre-compute the product $\widetilde{X}' \widetilde{Y}$.
+The only term that remains to be addressed is $G_T$.
+Because our normal sampler is parameterized in terms of the precision matrix rather than the covariance matrix we calculated $G_T^{-1}$ rather than $G_T$ above.
+Rather than inverting it in this step, which is a very bad idea given its size, we notice that our expression for $\bar{\boldsymbol{\gamma}}$ takes the form $\mathbf{v}=A^{-1}\mathbf{b}$.
+Therefore,
+\begin{equation*}
+\bar{\boldsymbol{\gamma}} = \mbox{solve}\left[ G_T^{-1}, \;  G_0^{-1}\boldsymbol{\gamma}_0 +\mbox{vec}\left( \widetilde{X}' \widetilde{Y} \Omega^{-1} \right)  \right]
+\end{equation*}
 
 \section{Calculating the Marginal likelihood}
 

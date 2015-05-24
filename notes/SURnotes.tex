@@ -24,12 +24,12 @@ Now let $\mathbf{x}_t' = (1, \mathbf{f}_t')$ and $\boldsymbol{\gamma}_d' = (\alp
 where $X_t = I_D \otimes \mathbf{x}_t'$ and $\boldsymbol{\gamma}'= \left( \boldsymbol{\gamma}_1', \hdots, \boldsymbol{\gamma}_D' \right)$. 
 Now, suppose that 
 \begin{equation*}
-  \boldsymbol{\varepsilon}_t|\mathbf{x}_t \sim \mbox{ iid } \mathcal{N}_D(0, \Omega^{-1})
+  \boldsymbol{\varepsilon}_t|\mathbf{x}_t \sim \mbox{ iid } \mathcal{N}_D(0, \Omega)
 \end{equation*}
 Let $Y_T$ denote the full data sample, i.e.\ $\left\{ \mathbf{y}_t, \mathbf{x}_t \right\}_{t=1}^T$.
 Then the likelihood is 
 \begin{equation*}
-  \pi(\boldsymbol{\gamma},\Omega^{-1}|Y_T) \propto |\Omega^{-1}|^{T/2} \exp\left[ -\frac{1}{2} \sum_{t=1}^T \left(\mathbf{y}_t - X_t \boldsymbol{\gamma} \right)' \Omega^{-1} \left(\mathbf{y}_t - X_t \boldsymbol{\gamma} \right)\right]
+  \pi(Y_T|\boldsymbol{\gamma},\Omega^{-1}) \propto |\Omega^{-1}|^{T/2} \exp\left[ -\frac{1}{2} \sum_{t=1}^T \left(\mathbf{y}_t - X_t \boldsymbol{\gamma} \right)' \Omega^{-1} \left(\mathbf{y}_t - X_t \boldsymbol{\gamma} \right)\right]
 \end{equation*}
 where we parameterize this problem in terms of the $D\times D$ \emph{precision} matrix $\Omega^{-1}$ and the $p\times1$ vector of regression coefficients $\boldsymbol{\gamma}$, where $p = D(K+1)$.
 
@@ -137,7 +137,7 @@ Because we parameterize our multivariate normal sampler in terms of the \emph{pr
 \end{equation*}
 Since it is simply the prior precision matrix for the vector $\boldsymbol{\gamma}$ of regression coefficients we can pre-compute $G_0$ (assuming that we elicit a prior in terms of the covariance matrix).
 Now, the sum over $X_t' \Omega X_t$ can in fact be simplified using the properties of the Kronecker product.\footnote{See, e.g., Horn and Johnson (1994) Chapter 4.2.}
-Recall that $X_t = I_D \otimes \mathbf{x}_t$.
+Recall that $X_t = I_D \otimes \mathbf{x}_t'$.
 Since $\left( A\otimes B \right)' = A' \otimes B'$, 
 \begin{equation*}
   X_t' \Omega^{-1} X_t = \left( I_D \otimes \mathbf{x}_t \right) \Omega^{-1}X_t
@@ -229,42 +229,76 @@ Therefore,
 \end{equation*}
 
 \section{Calculating the Marginal likelihood}
+We calculate the marginal likelihood using the method of Chib (1995).
+Let $\theta$ denote the full collection of parameters.
+By Bayes' Rule
+\begin{equation*}
+  \pi\left( \theta | Y_T \right) = \frac{\pi(\theta)f(Y_T|\theta)}{f(Y_T)}  
+\end{equation*}
+where $f(Y_T)$ is the marginal likelihood, aka the marginal data density, aka the evidence.
+This identity holds true for \emph{any} value of $\theta$.
+In particular it holds at the posterior mean $\theta^*$.
+Solving for $f(Y_T)$ and evaluating the result at $\theta^*$, we have 
+\begin{equation*}
+  f\left(Y_T \right) = \frac{\pi(\theta^*)f(Y_T|\theta^*)}{\pi(\theta^*|Y_T)}  
+\end{equation*}
+Thus, we can express the \emph{log} marginal likelihood as
+\begin{equation*}
+  \log f(Y_T) = \log \pi(\theta^*) + \log f\left( Y_T|\theta^* \right) - \pi\left( \theta^*|Y_T \right)
+\end{equation*}
+Specializing this to the SUR model considered above,
+\begin{equation*}
+  \log f(Y_T) = \log \pi(\boldsymbol{\gamma}^*) + \log \pi\left( \Omega^{-1*} \right) + \log f\left( Y_T|\boldsymbol{\gamma}^*, \Omega^{-1*} \right) - \pi\left( \boldsymbol{\gamma}^*, \Omega^{-1*}|Y_T \right)
+\end{equation*}
+since our priors over $\boldsymbol{\gamma}$ and $\Omega^{-1}$ are independent.
+The Chib (1995) method approximates $\log f(Y_T)$ by evaluating each of the terms on the right-hand-side of the preceding expression using the output of the Gibbs sampler.
 
-The marginal likelihood is available by the method of Chib (1995). From the
-Chib (1995) identity, we have
+\paragraph{The Contribution of the Prior}
+Evaluating the first two terms, $\log \pi(\boldsymbol{\gamma}^*)$ and $\log \pi\left( \Omega^{-1*} \right)$, is easy: these are simply the priors for $\boldsymbol{\gamma}$ and $\Omega^{-1}$ evaluated at the posterior means.
+We take the sample average of the Gibbs draws to approximate $\boldsymbol{\gamma}^*$ and $\Omega^{-1*}$ and evaluate the Normal and Wishart distributions at these points, with parameters given by the prior:
+\begin{eqnarray*}
+  \pi\left( \boldsymbol{\gamma}^* \right) &=& \mathcal{N}_p\left( \boldsymbol{\gamma}^* | \boldsymbol{\gamma}_0, G_0 \right)\\
+  \pi\left( \Omega^{-1*} \right) &=& \mathcal{W}_D\left( \Omega^{-1*}|\rho_0, R_0 \right)
+\end{eqnarray*}
+
+\paragraph{The Contribution of the Likelihood}
+Above we assumed that $\boldsymbol{\varepsilon}_t|\mathbf{x}_t \sim \mbox{ iid } \mathcal{N}_D(0,\Omega)$
+
+
+\paragraph{The Contribution of the Posterior}
+To evaluate the third term, we factorize the joint posterior as the product of a conditional and marginal, namely:
 \begin{equation*}
-\log m\left( \left\{ y_{t}\right\} \right) =\log \pi \left( \gamma ^{\ast
-}\right) +\log \pi \left( \Omega ^{-1\ast }\right) +\sum_{t=1}^{n}\log
-p\left( y_{t}|X_{t}\gamma ^{\ast },\Omega ^{\ast }\right) -\log \pi \left(
-\gamma ^{\ast },\Omega ^{-1\ast }|Y_{n}\right)
-\end{equation*}%
-where the last term is calculated as%
+  \pi\left( \boldsymbol{\gamma}^*, \Omega^{-1*}|Y_T \right) = \pi\left( \boldsymbol{\gamma}^*|\Omega^{-1*},Y_T \right) \times \pi\left( \Omega^{-1*}|Y_T \right)
+\end{equation*}
+Because we have \emph{analytical expressions} for the conditional posteriors in this model we can evaluate the first term in the product immediately.
+We have $\boldsymbol{\gamma}|\Omega^{-1} \sim \mathcal{N}_p\left( \boldsymbol{\gamma}|\bar{\boldsymbol{\gamma}}, G_T \right)$ where $G_T$ and $\bar{\gamma}$ depend only on the prior, the data, and $\Omega^{-1}$.
+To perform the required calculation, we simply evaluate the normal density at $\boldsymbol{\gamma}^*$ and evaluate $G_T$ and $\bar{\gamma}$ at $\Omega^{-1*}$, that is:
 \begin{equation*}
-\pi \left( \Omega ^{-1\ast }|Y_{n}\right) \times \pi \left( \gamma ^{\ast
-}|Y_{n},\Omega ^{-1\ast }\right)
-\end{equation*}%
-in which the first term is estimated by averaging the full-conditional
-Wishart density over the draws $\left\{ \gamma ^{(g)}\right\} _{g=1}^{G}$
-from the main MCMC run
-\begin{equation*}
-\pi \left( \Omega ^{-1\ast }|Y_{n}\right) =\frac{1}{G}\sum_{g=1}^{G}\mathcal{%
-W}_{d}\left( \Omega ^{-1\ast }|\rho _{0}+n,\left(
-R_{0}^{-1}+\sum_{t=1}^{n}\left( y_{t}-X_{t}\gamma ^{(g)}\right) \left(
-y_{t}-X_{t}\gamma ^{(g)}\right) ^{\prime }\right) ^{-1}\right)
-\end{equation*}%
-and the second term $\pi \left( \gamma ^{\ast }|Y_{n},\Omega ^{-1\ast
-}\right) $ is available directly as%
-\begin{equation*}
-\pi (\gamma ^{\ast }|Y_{n},\Omega ^{-1\ast })=\mathcal{N}_{d+p}\left( \gamma
-^{\ast }|\hat{\gamma}^{\ast },G_{n}^{\ast }\right)
-\end{equation*}%
-where%
-\begin{align*}
-\hat{\gamma}^{\ast }& =G_{n}^{\ast }\left( G_{0}^{-1}\gamma
-_{0}+\sum_{t=1}^{n}X_{t}^{\prime }\Omega ^{-1\ast }y_{t}\right)  \\
-G_{n}^{\ast }& =\left( G_{0}^{-1}+\sum_{t=1}^{n}X_{t}^{\prime }\Omega
-^{-1\ast }X_{t}\right) ^{-1}
-\end{align*}
+  \pi\left( \boldsymbol{\gamma}^*|\Omega^{-1*}, Y_T \right) = \mathcal{N}_p\left( \boldsymbol{\gamma}^*|\bar{\gamma}^*, G_T^*\right)
+\end{equation*}
+where
+\begin{eqnarray*}
+  G_T^* &=& \left[ G_0^{-1} + \sum_{t=1}^T X_t' \Omega^{-1*} X_t \right]^{-1} = \left[ G_0^{-1} + \Omega^{-1*} \otimes \widetilde{X}'\widetilde{X} \right]^{-1}\\
+  \bar{\boldsymbol{\gamma}}^* &=& G_T^* \left[ G_0^{-1}\boldsymbol{\gamma}_0 + \sum_{t=1}^{T} X_t'\Omega^{-1*}\mathbf{y}_t \right] = G_T^* \left[ G_0^{-1}\gamma_0 + \mbox{vec}\left( \widetilde{X}'\widetilde{Y}\Omega^{-1*} \right) \right]
+\end{eqnarray*}
+The evaluation of the second term in the product that gives the contribution of the posterior to the marginal likelihood is a bit more involved.
+We write
+\begin{eqnarray*}
+  \pi\left( \Omega^{-1*}|Y_T \right) &=&  \int \pi\left( \boldsymbol{\gamma},\Omega^{-1*}|Y_T \right) \; d\boldsymbol{\gamma}\\
+  &=& \int \pi\left( \Omega^{-1*}|\boldsymbol{\gamma}, Y_T \right)\pi\left( \boldsymbol{\gamma}|Y_T \right)\; d\boldsymbol{\gamma}
+\end{eqnarray*}
+and approximate the second integral using the draws from the Gibbs sampler:
+\begin{eqnarray*}
+  \pi\left( \Omega^{-1*}|Y_T \right) &\approx& \frac{1}{G}\sum_{g=1}^G \pi\left( \Omega^{-1*}|\boldsymbol{\gamma}^{(g)},Y_T \right)\\
+  &=& \frac{1}{G}\sum_{g=1}^G \mathcal{W}_D\left(\Omega^{-1*}\left|\rho_T, R_T^{\left( g \right)}\right. \right) 
+\end{eqnarray*}
+where
+\begin{eqnarray*}
+  R_T^{(g)} &=&  \left[ R_0^{-1} + \sum_{t=1}^{T} \left( \mathbf{y}_t - X_t \boldsymbol{\gamma}^{(g)} \right)\left( \mathbf{y}_t - X_t \boldsymbol{\gamma}^{(g)} \right)' \right]^{-1}\\
+  &=& \left[  R_0^{-1} + \left( \widetilde{Y} - \widetilde{X} \Gamma^{(g)} \right)'\left( \widetilde{Y} - \widetilde{X} \Gamma^{(g)} \right)\right]^{-1}
+\end{eqnarray*}
+
+
 
 \section{Prediction}
 

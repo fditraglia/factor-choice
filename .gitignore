@@ -127,3 +127,6 @@ sympy-plots-for-*.tex/
 
 # C/C++ Object files
 *.o
+
+# R stuff
+*.Rhistory

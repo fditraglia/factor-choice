@@ -292,8 +292,18 @@ We take the sample average of the Gibbs draws to approximate $\boldsymbol{\gamma
 \end{eqnarray*}
 
 \paragraph{The Contribution of the Likelihood}
-Above we assumed that $\boldsymbol{\varepsilon}_t|\mathbf{x}_t \sim \mbox{ iid } \mathcal{N}_D(0,\Omega)$
-
+Above we assumed a normal distribution for the regression errors, specifically, $\boldsymbol{\varepsilon}_t|\mathbf{x}_t \sim \mbox{ iid } \mathcal{N}_D(0,\Omega)$.
+From the regression specification it follows that $\mathbf{y}_t \sim \mbox{ iid } \mathcal{N}_D\left(X_t \boldsymbol{\gamma}, \Omega\right)$ and thus the log likelihood evaluated at the posterior mean is
+\begin{equation*}
+  \log f(Y_T| \boldsymbol{\gamma}^*,\Omega^{-1*}) = \sum_{t=1}^{T} \log{ \mathcal{N}_D \left(\mathbf{y}_t|X_t \boldsymbol{\gamma}^*, \Omega^{-1*}\right)}
+\end{equation*}
+parameterized in terms of the precision matrix rather than the covariance matrix.
+Equivalently, but more conveniently, we may write
+\begin{equation*}
+  \log f(Y_T| \boldsymbol{\gamma}^*,\Omega^{-1*}) = \sum_{t=1}^{T} \log{ \mathcal{N}_D \left(\mathbf{y}_t -X_t \boldsymbol{\gamma}^*|\mathbf{0}, \Omega^{-1*}\right)}
+\end{equation*}
+The advantage of this version of the likelihood is that the parameters of the normal density are constant over $t$, allowing us to exploit the efficient algorithm for repeatedly evaluating a MV normal density with fixed parameters, described above.
+Note that we can simultaneously calculate all of the arguments for the normal density as $\widetilde{Y} - \widetilde{X} \Gamma^*$ using the notation defined above in the description of efficient calculations for $R_T$.
 
 \paragraph{The Contribution of the Posterior}
 To evaluate the third term, we factorize the joint posterior as the product of a conditional and marginal, namely:
@@ -413,7 +423,7 @@ and%
 One sweep of the MCMC\ sampling is completed by sampling these four
 distributions in this order.
 
-\subsection{Marginal likelihood}
+\subsection{Marginal Likelihood}
 
 The Chib (1995) method can again be applied to find the log marginal
 likelihood as

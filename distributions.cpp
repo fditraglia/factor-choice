@@ -37,9 +37,7 @@ double density_normal(colvec x, colvec mu, mat Sigma_inv,
 #  Sigma_inv    precision matrix (inverse of cov matrix)
 #  logret       if true, return log of density
 #--------------------------------------------------------
-# NOTES: 
-#  (1) Parameterized using precision matrix
-#  (2) Intermediate steps calculated in logs for stability
+# NOTE: Parameterized using precision matrix
 #-------------------------------------------------------*/
  int p = Sigma_inv.n_cols;
  double first = -0.5 * p * log(2.0 * datum::pi);
@@ -120,8 +118,6 @@ double density_wishart(mat X, int v, mat S,
 #  v        degrees of freedom
 #  S        scale matrix 
 #  logret   if true, return log of density
-#--------------------------------------------------------
-# NOTES: 
 #-------------------------------------------------------*/
   int p = S.n_rows;
   double X_val, X_sign;

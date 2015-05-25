@@ -25,7 +25,8 @@ colvec draw_normal(colvec mu, mat Sigma_inv){
 }
 
 // [[Rcpp::export]]
-double density_normal(colvec x, colvec mu, mat Sigma_inv){
+double density_normal(colvec x, colvec mu, mat Sigma_inv, 
+                      bool logret = false){
 /*-------------------------------------------------------
 # RETURNS: 
 #  MV Normal(mu, Sigma_inv) probability density function
@@ -34,6 +35,7 @@ double density_normal(colvec x, colvec mu, mat Sigma_inv){
 #  x            point at which density is evaluated
 #  mu           mean vector
 #  Sigma_inv    precision matrix (inverse of cov matrix)
+#  logret       if true, return log of density
 #--------------------------------------------------------
 # NOTES: 
 #  (1) Parameterized using precision matrix
@@ -46,7 +48,11 @@ double density_normal(colvec x, colvec mu, mat Sigma_inv){
  log_det(val, sign, Sigma_inv);
  double second = 0.5 * val;
  double third = -0.5 * as_scalar(trans(x - mu) * Sigma_inv * (x - mu));
- return exp(first + second + third);
+ double logdensity = first + second + third;
+ if(logret)
+   return logdensity;
+ else
+   return exp(logdensity);
 }
 
 // [[Rcpp::export]]
@@ -104,14 +110,16 @@ double log_mv_gamma(int p, double a){
 
 
 // [[Rcpp::export]]
-double density_wishart(mat X, int v, mat S){
+double density_wishart(mat X, int v, mat S, 
+                       bool logret = false){
 /*-------------------------------------------------------
 # RETURNS: 
 #  Wishart(v, S) density evaluated at X
 #--------------------------------------------------------
 # ARGUMENTS:
-#  v     degrees of freedom
-#  S     scale matrix 
+#  v        degrees of freedom
+#  S        scale matrix 
+#  logret   if true, return log of density
 #--------------------------------------------------------
 # NOTES: 
 #-------------------------------------------------------*/
@@ -125,5 +133,9 @@ double density_wishart(mat X, int v, mat S){
   log_det(S_val, S_sign, S);
   double term4 = -0.5 * v * S_val;
   double term5 = -1.0 * log_mv_gamma(p, 0.5 * v);
-  return exp(term1 + term2 + term3 + term4 + term5);
+  double logdensity = term1 + term2 + term3 + term4 + term5;
+  if(logret)
+    return logdensity;
+  else 
+    return exp(logdensity);
 }

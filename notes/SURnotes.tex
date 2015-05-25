@@ -85,7 +85,37 @@ Using the full set of conditional posteriors, given in the preceding section, we
 Note that in iteration $g$, $G_T^{(g)}$ and $\bar{\boldsymbol{\gamma}}^{(g)}$ are calculated using $\Omega^{-1(g-1)}$ while $R_T^{(g)}$ is calculated using $\boldsymbol{\gamma}^{(0)}$.
 This is because we choose to initialize the sample with a starting value $\Omega^{-1(0)}$ for the precision matrix rather than for the vector of regression coefficients.
 
-\section{Numerical Details for the Gibbs Sampler}
+\section{Numerical Details}
+
+\subsection{Evaluating the MV Normal Density}
+As one of the steps in the calculation of the marginal likelihood (see below) we will need to repeatedly evaluate the log of a multivariate normal density at a fixed set of parameter values.
+Let $Z$ be a $p\times n$ matrix, each of whose columns is a point $\mathbf{z}$ at which we wish to evaluate 
+$\log {\mathcal{N}_p\left(\mathbf{z}|\mu, \Sigma \right)}$
+where $\mu$ is the mean vector and $\Sigma$ the covariance matrix of a multivariate normal.
+Because our problem is parameterizes in terms of the \emph{precision} matrix rather than the covariance matrix, the calculations given here assume that we are given $\Sigma^{-1}$ rather than $\Sigma$.
+In terms of the precision matrix, the log of the MV normal density is given by
+\begin{equation*}
+  \log {\mathcal{N}_p\left(\mathbf{z}|\mu, \Sigma^{-1} \right)} = -\frac{1}{2}\log\left( 2\pi \right) + \frac{1}{2} \log \left| \Sigma^{-1} \right| - \frac{1}{2} \left(\mathbf{z} - \mu \right)' \Sigma^{-1} \left( \mathbf{z} - \mu \right)
+\end{equation*}
+Now let $R$ be the Cholesky factor of $\Sigma^{-1}$ so that $\Sigma^{-1} = R'R$ and define $\tilde{\mathbf{z}} = \mathbf{z} - \mu$ and $\mathbf{v} = R\tilde{\mathbf{z}}$.
+Using these definitions,
+\begin{equation*}
+  \left( \mathbf{z} - \mu \right)' \Sigma^{-1} \left( \mathbf{z} - \mu \right) = (R\tilde{\mathbf{z}})'(R\tilde{\mathbf{z}}) = \mathbf{v}' \mathbf{v}
+\end{equation*}
+and, letting $R_{ii}$ denote the $i$th diagonal element of $R$,
+\begin{eqnarray*}
+  \log |\Sigma^{-1}| &=&  \log |R'R| = \log\left(|R'| \cdot |R|\right) = \log |R'| + \log |R| \\
+  &=& 2 \log|R| = 2 \cdot \sum_{i=1}^{p} \log R_{ii}
+\end{eqnarray*} 
+since $|A| = |A'|$, $|AB| = |A| \cdot |B|$ and the determinant of a triangular matrix equals the product of its diagonal elements.
+Thus, we have
+\begin{equation*}
+  \log {\mathcal{N}_p\left(\mathbf{z}|\mu, \Sigma^{-1} \right)} = -\frac{1}{2}\log\left( 2\pi \right) + \mbox{trace}\left[\log \left(\mbox{diag}\left\{R  \right\}  \right)\right] - \frac{1}{2} \mathbf{v}'\mathbf{v}
+\end{equation*}
+The only term in the preceding expression that depends on $\mathbf{z}$ is $\mathbf{v}'\mathbf{v}$.
+We can calculate this term simultaneously for all columns of $Z$ as follows.
+First let $\widetilde{Z}$ denote the result of subtracting of subtracting the vector $\mu$ from each column of $Z$, i.e.\ $\widetilde{Z} = Z - \mu \mathbf{1}_n'$.
+To calculate $\mathbf{v}'\mathbf{v}$ for each column of $Z$ we simply square the elements of $R\widetilde{Z}$ and take the column sums of the resulting matrix.
 
 
 \subsection{Efficient Calculation of $R_T$}

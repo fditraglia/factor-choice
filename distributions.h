@@ -3,7 +3,7 @@
 
 arma::colvec draw_normal(arma::colvec mu, arma::mat Sigma_inv);
 
-double density_normal(arma::colvec x, arma::colvec mu, 
+arma::vec density_normal(arma::mat x, arma::colvec mu, 
                       arma::mat Sigma_inv);
 
 arma::mat draw_wishart(int v, arma::mat S);

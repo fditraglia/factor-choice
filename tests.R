@@ -21,12 +21,13 @@ cov(foo) - M
 colMeans(foo) - m
 qqnorm(rowSums(foo))
 
-foo <- density_normal(x = c(1, 1), mu = m, Sigma_inv = M_inv)
-bar <- dmvnorm(x = c(1, 1), mean = m, sigma = M)
-all.equal(foo, bar)
-boo <- density_normal(c(1, 1), mu = m, Sigma_inv = M_inv, logret = TRUE)
-baz <- dmvnorm(x = c(1, 1), mean = m, sigma = M, log = TRUE)
-all.equal(boo, baz)
+x <- cbind(c(1, 1), c(-1, 1), c(-1, -1))
+foo <- density_normal(x, mu = m, Sigma_inv = M_inv)
+bar <- dmvnorm(t(x), mean = m, sigma = M)
+all.equal(drop(foo), bar)
+boo <- density_normal(x, mu = m, Sigma_inv = M_inv, logret = TRUE)
+baz <- dmvnorm(t(x), mean = m, sigma = M, log = TRUE)
+all.equal(drop(boo), baz)
 
 foo <- density_wishart(3 * M_inv, 5, M_inv)
 bar <- dwish(3 * M_inv, 5, M_inv) 

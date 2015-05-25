@@ -25,14 +25,16 @@ colvec draw_normal(colvec mu, mat Sigma_inv){
 }
 
 // [[Rcpp::export]]
-double density_normal(colvec x, colvec mu, mat Sigma_inv, 
+vec density_normal(mat x, colvec mu, mat Sigma_inv, 
                       bool logret = false){
 /*-------------------------------------------------------
 # RETURNS: 
 #  MV Normal(mu, Sigma_inv) probability density function
 #--------------------------------------------------------
 # ARGUMENTS:
-#  x            point at which density is evaluated
+#  x            matrix of points at which density is 
+#                 is to be evaluated: each column is a 
+#                 point, each row is a coordinate
 #  mu           mean vector
 #  Sigma_inv    precision matrix (inverse of cov matrix)
 #  logret       if true, return log of density
@@ -40,13 +42,12 @@ double density_normal(colvec x, colvec mu, mat Sigma_inv,
 # NOTE: Parameterized using precision matrix
 #-------------------------------------------------------*/
  int p = Sigma_inv.n_cols;
+ mat R = chol(Sigma_inv);
  double first = -0.5 * p * log(2.0 * datum::pi);
- double val;
- double sign;
- log_det(val, sign, Sigma_inv);
- double second = 0.5 * val;
- double third = -0.5 * as_scalar(trans(x - mu) * Sigma_inv * (x - mu));
- double logdensity = first + second + third;
+ double second = sum(log(diagvec(R)));
+ x.each_col() -= mu;
+ vec third = -0.5 * sum(pow(R * x, 2)).t();
+ vec logdensity = first + second + third;
  if(logret)
    return logdensity;
  else

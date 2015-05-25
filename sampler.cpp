@@ -62,9 +62,9 @@ SURidentical::SURidentical(const mat& X, const mat& Y,
     
     if(i >= burn_in){
       j = i - burn_in;
-      RT_draws.slice(i) = RT;
-      Omega_inv_draws.slice(i) = Omega_inv;
-      g_draws.col(i) = g;
+      RT_draws.slice(j) = RT;
+      Omega_inv_draws.slice(j) = Omega_inv;
+      g_draws.col(j) = g;
     }
   }
 }

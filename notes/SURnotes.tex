@@ -95,7 +95,7 @@ where $\mu$ is the mean vector and $\Sigma$ the covariance matrix of a multivari
 Because our problem is parameterizes in terms of the \emph{precision} matrix rather than the covariance matrix, the calculations given here assume that we are given $\Sigma^{-1}$ rather than $\Sigma$.
 In terms of the precision matrix, the log of the MV normal density is given by
 \begin{equation*}
-  \log {\mathcal{N}_p\left(\mathbf{z}|\mu, \Sigma^{-1} \right)} = -\frac{1}{2}\log\left( 2\pi \right) + \frac{1}{2} \log \left| \Sigma^{-1} \right| - \frac{1}{2} \left(\mathbf{z} - \mu \right)' \Sigma^{-1} \left( \mathbf{z} - \mu \right)
+  \log {\mathcal{N}_p\left(\mathbf{z}|\mu, \Sigma^{-1} \right)} = -\frac{p}{2}\log\left( 2\pi \right) + \frac{1}{2} \log \left| \Sigma^{-1} \right| - \frac{1}{2} \left(\mathbf{z} - \mu \right)' \Sigma^{-1} \left( \mathbf{z} - \mu \right)
 \end{equation*}
 Now let $R$ be the Cholesky factor of $\Sigma^{-1}$ so that $\Sigma^{-1} = R'R$ and define $\tilde{\mathbf{z}} = \mathbf{z} - \mu$ and $\mathbf{v} = R\tilde{\mathbf{z}}$.
 Using these definitions,
@@ -110,7 +110,7 @@ and, letting $R_{ii}$ denote the $i$th diagonal element of $R$,
 since $|A| = |A'|$, $|AB| = |A| \cdot |B|$ and the determinant of a triangular matrix equals the product of its diagonal elements.
 Thus, we have
 \begin{equation*}
-  \log {\mathcal{N}_p\left(\mathbf{z}|\mu, \Sigma^{-1} \right)} = -\frac{1}{2}\log\left( 2\pi \right) + \mbox{trace}\left[\log \left(\mbox{diag}\left\{R  \right\}  \right)\right] - \frac{1}{2} \mathbf{v}'\mathbf{v}
+  \log {\mathcal{N}_p\left(\mathbf{z}|\mu, \Sigma^{-1} \right)} = -\frac{p}{2}\log\left( 2\pi \right) + \mbox{trace}\left[\log \left(\mbox{diag}\left\{R  \right\}  \right)\right] - \frac{1}{2} \mathbf{v}'\mathbf{v}
 \end{equation*}
 The only term in the preceding expression that depends on $\mathbf{z}$ is $\mathbf{v}'\mathbf{v}$.
 We can calculate this term simultaneously for all columns of $Z$ as follows.

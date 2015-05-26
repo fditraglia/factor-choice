@@ -7,15 +7,6 @@
 using namespace Rcpp;
 using namespace arma;
 
-
-// [[Rcpp::export]]
-colvec testy(colvec m){
-  int p = m.n_elem;
-  mat precision = eye(p, p);
-  colvec out = draw_normal(m, precision);
-  return out;
-}
-
 class SURidentical {
   public: 
     SURidentical(const mat&, const mat&, const mat&, 
@@ -23,9 +14,10 @@ class SURidentical {
     double logML();
     mat g_draws, Omega_inv_draws;
   private:
-    int r1, T, D, K, p, n_vech, j;
-    vec G0_inv_g0, gbar, g;
+    int r1, T, D, K, p, n_vech, j, r0copy;
+    vec G0_inv_g0, gbar, g, g0copy;
     mat XX, XY, R0_inv, G0_inv;
+    mat Xcopy, Ycopy, G0copy, R0copy;
     mat resid, RT, GT_inv, Omega_inv, RT_draws;
 };
 //Class constructor
@@ -43,6 +35,15 @@ SURidentical::SURidentical(const mat& X, const mat& Y,
   Omega_inv_draws.zeros(n_vech, n_draws);
   g_draws.zeros(p, n_draws);
   RT_draws.zeros(n_vech, n_draws);
+  
+  r0copy = r0;
+  G0copy = G0;
+  g0copy = g0;
+  r0copy = r0;
+  R0copy = R0;
+  Xcopy = X;
+  Ycopy = Y;
+  
   XX = X.t() * X;
   XY = X.t() * Y;
   r1 = r0 + T; 
@@ -71,10 +72,35 @@ SURidentical::SURidentical(const mat& X, const mat& Y,
 }
 //Member function to calculate marginal likelihood
 double SURidentical::logML(){
-  //calculate posterior means
   vec gstar = mean(g_draws, 1);
   mat Omega_inv_star = devech(mean(Omega_inv_draws, 1), D);
-  //Still need to write body of this function...
-  double prior_contrib, like_contrib, post_contrib;
-  return prior_contrib + like_contrib + post_contrib;
+  
+  double prior1 = as_scalar(density_normal(gstar, g0copy, 
+                                           G0copy, true));
+  double prior2 = density_wishart(Omega_inv_star, r0copy, 
+                                  R0copy, true); 
+  
+  mat resid_star =  Ycopy - Xcopy * reshape(gstar, K, D);
+  double like = sum(density_normal(resid_star.t(), zeros<vec>(D), 
+                                   Omega_inv_star, true));
+ 
+  mat GT_inv_star = G0_inv + kron(Omega_inv_star, XX);
+  vec gbar_star = solve(GT_inv_star, 
+                  G0_inv_g0 + vectorise(XY * Omega_inv_star));
+  double post1 = as_scalar(density_normal(gstar, gbar_star, 
+                                          GT_inv_star, true));
+  
+  vec post2_terms(RT.n_cols);
+  mat RT_g(D, D);
+  for(int i = 0; i < RT.n_cols; i++){
+    RT_g = devech(RT.col(i), D);
+    post2_terms(i) = density_wishart(Omega_inv_star, r1, RT_g);
+  }
+  double post2 = log(mean(post2_terms));
+  
+  return prior1 + prior2 + like + post1 + post2;
 }
+
+
+
+

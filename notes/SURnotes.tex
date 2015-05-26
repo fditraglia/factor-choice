@@ -165,7 +165,7 @@ Because we parameterize our multivariate normal sampler in terms of the \emph{pr
 \begin{equation*}
   G_T^{-1} =  G_0^{-1} + \sum_{t=1}^T X_t' \Omega^{-1} X_t 
 \end{equation*}
-Since it is simply the prior precision matrix for the vector $\boldsymbol{\gamma}$ of regression coefficients we can pre-compute $G_0$ (assuming that we elicit a prior in terms of the covariance matrix).
+Since it is simply the prior precision matrix for the vector $\boldsymbol{\gamma}$ of regression coefficients we can pre-compute $G_0^{-1}$ (assuming that we elicit a prior in terms of the covariance matrix).
 Now, the sum over $X_t' \Omega X_t$ can in fact be simplified using the properties of the Kronecker product.\footnote{See, e.g., Horn and Johnson (1994) Chapter 4.2.}
 Recall that $X_t = I_D \otimes \mathbf{x}_t'$.
 Since $\left( A\otimes B \right)' = A' \otimes B'$, 

@@ -93,12 +93,12 @@ double SURidentical::logML(){
   vec post2_terms(RT.n_cols);
   mat RT_g(D, D);
   for(int i = 0; i < RT.n_cols; i++){
-    RT_g = devech(RT.col(i), D);
+    RT_g = devech(RT_draws.col(i), D);
     post2_terms(i) = density_wishart(Omega_inv_star, r1, RT_g);
   }
   double post2 = log(mean(post2_terms));
   
-  return prior1 + prior2 + like + post1 + post2;
+  return (prior1 + prior2) + like - (post1 + post2);
 }
 
 
@@ -107,7 +107,8 @@ List samplerTest(mat X, mat Y, mat G0, vec g0, mat R0, int r0,
                  int n_draws, int burn_in){
   SURidentical draws(X, Y, G0, g0, R0, r0, n_draws, burn_in);
   List out = List::create(Named("g_draws") = draws.g_draws,
-          Named("Omega_inv_draws") = draws.Omega_inv_draws);
+          Named("Omega_inv_draws") = draws.Omega_inv_draws,
+          Named("logML") = draws.logML());
   return out;
 }
 

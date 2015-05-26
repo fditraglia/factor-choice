@@ -19,6 +19,7 @@ class SURidentical {
   public: 
     SURidentical(const mat&, const mat&, const mat&, 
                  const vec&, const mat&, int, int, int);
+    double logML();
     mat g_draws;
     cube Omega_inv_draws;
   private:
@@ -26,7 +27,6 @@ class SURidentical {
     vec G0_inv_g0, gbar, g;
     mat XX, XY, R0_inv, G0_inv, resid, RT, GT_inv, Omega_inv;
     cube RT_draws;
-    mat Qx, Rx, Qy, Ry, U, V;
 };
 //Class constructor
 SURidentical::SURidentical(const mat& X, const mat& Y,
@@ -67,4 +67,12 @@ SURidentical::SURidentical(const mat& X, const mat& Y,
       g_draws.col(j) = g;
     }
   }
+}
+//Member function to calculate marginal likelihood
+double SURidentical::logML(){
+  //calculate posterior means
+  vec gstar;
+  vec Omega_inv_star;
+  double prior_contrib, like_contrib, post_contrib;
+  return prior_contrib + like_contrib + post_contrib;
 }

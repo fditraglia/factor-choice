@@ -2,6 +2,7 @@
 
 #include <RcppArmadillo.h>
 #include "distributions.h"
+#include "matrix_tools.h"
 
 using namespace Rcpp;
 using namespace arma;
@@ -20,13 +21,12 @@ class SURidentical {
     SURidentical(const mat&, const mat&, const mat&, 
                  const vec&, const mat&, int, int, int);
     double logML();
-    mat g_draws;
-    cube Omega_inv_draws;
+    mat g_draws, Omega_inv_draws;
   private:
-    int r1, T, D, K, p, j;
+    int r1, T, D, K, p, n_vech, j;
     vec G0_inv_g0, gbar, g;
-    mat XX, XY, R0_inv, G0_inv, resid, RT, GT_inv, Omega_inv;
-    cube RT_draws;
+    mat XX, XY, R0_inv, G0_inv;
+    mat resid, RT, GT_inv, Omega_inv, RT_draws;
 };
 //Class constructor
 SURidentical::SURidentical(const mat& X, const mat& Y,
@@ -38,10 +38,11 @@ SURidentical::SURidentical(const mat& X, const mat& Y,
   D = Y.n_cols;
   K = X.n_cols;
   p = K * D;
+  n_vech = (D + 1) * D / 2;
   
-  Omega_inv_draws.zeros(D, D, n_draws);
+  Omega_inv_draws.zeros(n_vech, n_draws);
   g_draws.zeros(p, n_draws);
-  RT_draws.zeros(D, D, n_draws);
+  RT_draws.zeros(n_vech, n_draws);
   XX = X.t() * X;
   XY = X.t() * Y;
   r1 = r0 + T; 
@@ -62,8 +63,8 @@ SURidentical::SURidentical(const mat& X, const mat& Y,
     
     if(i >= burn_in){
       j = i - burn_in;
-      RT_draws.slice(j) = RT;
-      Omega_inv_draws.slice(j) = Omega_inv;
+      RT_draws.col(j) = vech(RT);
+      Omega_inv_draws.col(j) = vech(Omega_inv);
       g_draws.col(j) = g;
     }
   }
@@ -71,8 +72,9 @@ SURidentical::SURidentical(const mat& X, const mat& Y,
 //Member function to calculate marginal likelihood
 double SURidentical::logML(){
   //calculate posterior means
-  vec gstar;
-  vec Omega_inv_star;
+  vec gstar = mean(g_draws, 1);
+  mat Omega_inv_star = devech(mean(Omega_inv_draws, 1), D);
+  //Still need to write body of this function...
   double prior_contrib, like_contrib, post_contrib;
   return prior_contrib + like_contrib + post_contrib;
 }

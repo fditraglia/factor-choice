@@ -114,26 +114,26 @@ List samplerTest(mat X, mat Y, mat G0, vec g0, mat R0, int r0,
 
 
 /*** R
-setwd("~/factor-choice/")
-dat <- read.csv("data_value.csv")
-nT <- nrow(dat)
-x1 <- rep(1, nT)
-x2 <- dat$Mkt.RF
-x3 <- dat$SMB
-x4 <- dat$HML
-M <- matrix(c(1, 0.2, 0.2, 1), 2, 2)
-set.seed(1234)
-errors <- t(chol(M) %*% rbind(rnorm(nT), rnorm(nT)))
-y1 <- x2 + errors[,1]
-y2 <- 0.5 + x2 + 0.2 * x3 + 0.2 * x4 + errors[,2]
-Y <- cbind(y1, y2)
-X <- cbind(x1, x2, x3, x4)
-rm(x1, x2, x3, x4, y1, y2, nT, dat)
-r0 <- 10
-g0 <- rep(0, ncol(X) * ncol(Y))
-G0 <- diag(ncol(X) * ncol(Y))
-R0 <- diag(ncol(Y))
-gibbs <- samplerTest(X, Y, G0, g0, R0, r0, 4000, 1000)
-solve(devech(rowMeans(gibbs$Omega_inv_draws), 2))
-matrix(rowMeans(gibbs$g_draws), ncol(X), ncol(Y))
+# setwd("~/factor-choice/")
+# dat <- read.csv("data_value.csv")
+# nT <- nrow(dat)
+# x1 <- rep(1, nT)
+# x2 <- dat$Mkt.RF
+# x3 <- dat$SMB
+# x4 <- dat$HML
+# M <- matrix(c(1, 0.2, 0.2, 1), 2, 2)
+# set.seed(1234)
+# errors <- t(chol(M) %*% rbind(rnorm(nT), rnorm(nT)))
+# y1 <- x2 + errors[,1]
+# y2 <- 0.5 + x2 + 0.2 * x3 + 0.2 * x4 + errors[,2]
+# Y <- cbind(y1, y2)
+# X <- cbind(x1, x2, x3, x4)
+# rm(x1, x2, x3, x4, y1, y2, nT, dat)
+# r0 <- 10
+# g0 <- rep(0, ncol(X) * ncol(Y))
+# G0 <- diag(ncol(X) * ncol(Y))
+# R0 <- diag(ncol(Y))
+# gibbs <- samplerTest(X, Y, G0, g0, R0, r0, 4000, 1000)
+# solve(devech(rowMeans(gibbs$Omega_inv_draws), 2))
+# matrix(rowMeans(gibbs$g_draws), ncol(X), ncol(Y))
 */

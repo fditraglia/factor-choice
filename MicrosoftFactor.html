@@ -68,6 +68,8 @@ img {
 </div>
 
 
+<div id="preliminaries" class="section level2">
+<h2>Preliminaries</h2>
 <p>First I’ll load my (in-progress) package for Bayesian analysis of factor asset pricing models:</p>
 <pre class="r"><code>library(zoofactr)</code></pre>
 <p>If you haven’t already installed <code>zoofactr</code>, you can do so using Hadley Wickham’s <code>devtools</code> package as follows: <code>devtools::install_github(&quot;fditraglia/zoofactr&quot;)</code>.)</p>
@@ -98,6 +100,9 @@ img {
 ## 4 192610 -2.59 -9.46 -5.11  2.67 -5.72 -0.99 -3.28 0.13 -2.98 -2.51
 ## 5 192611  6.07 -0.38  1.69  1.59  1.32  1.48  1.35 7.20  5.71  0.85
 ## 6 192612  0.41  4.80  3.39  4.92  1.46  1.62  2.81 0.42  1.72  1.23</code></pre>
+</div>
+<div id="constructing-the-microsoft-factor" class="section level2">
+<h2>Constructing the “Microsoft Factor”</h2>
 <p>We’ll pull in Microsoft returns form Yahoo finance using the <code>quandl</code> package</p>
 <pre class="r"><code>msft &lt;- Quandl::Quandl(&quot;YAHOO/MSFT&quot;, type = &quot;raw&quot;, transformation = &quot;rdiff&quot;,
                        collapse = &quot;monthly&quot;, sort = &quot;asc&quot;)
@@ -151,6 +156,9 @@ head(SURdata)</code></pre>
 <p>and then create the “Microsoft Factor”</p>
 <pre class="r"><code>SURdata$MSFT.Rf &lt;- with(SURdata, MSFT - RF)
 rm(msft)</code></pre>
+</div>
+<div id="training-sample-prior" class="section level2">
+<h2>Training Sample Prior</h2>
 <p>Now we’ll use the first 100 rows of <code>SURdata</code> as a “training sample” to form a data-based prior for marginal likelihood comparisons in the subsequent sample:</p>
 <pre class="r"><code>train &lt;- SURdata[1:100,]
 fit &lt;- SURdata[-c(1:100),] 
@@ -164,56 +172,110 @@ Y_train &lt;- Y_train - train$RF
 Y_fit &lt;- Y_fit - fit$RF</code></pre>
 <p>To start we’ll consider the following models:</p>
 <pre class="r"><code>models &lt;- list(formula(&quot;~ Mkt.RF - 1&quot;),
-                formula(&quot;~ Mkt.RF&quot;),
-                formula(&quot;~ Mkt.RF + SMB + HML - 1&quot;),
-                formula(&quot;~ Mkt.RF + SMB + HML&quot;),
-                formula(&quot;~ Mkt.RF + MSFT.Rf - 1&quot;),
-                formula(&quot;~ Mkt.RF + MSFT.Rf&quot;),
-                formula(&quot;~ Mkt.RF + SMB + HML + MSFT.Rf - 1&quot;),
-                formula(&quot;~ Mkt.RF + SMB + HML + MSFT.Rf&quot;))</code></pre>
-<p>For the training estimation I use vague but proper priors: independent <span class="math">\(N(0,100)\)</span> for the regression coefficients and <span class="math">\(W(12, I_{10}/100)\)</span> for the precision matrix which corresponds to prior expectation of <span class="math">\(100 \times I_{10}\)</span> for the associated <em>covariance matrix</em>. Setting the degrees of freedom equal to 12 gives the most diffuse prior possible subject to the constraint that the expected value of the covariance matrix is finite.</p>
+               formula(&quot;~ Mkt.RF&quot;),
+               formula(&quot;~ Mkt.RF + SMB + HML - 1&quot;),
+               formula(&quot;~ Mkt.RF + SMB + HML&quot;),
+               formula(&quot;~ Mkt.RF + MSFT.Rf - 1&quot;),
+               formula(&quot;~ Mkt.RF + MSFT.Rf&quot;),
+               formula(&quot;~ Mkt.RF + SMB + HML + MSFT.Rf - 1&quot;),
+               formula(&quot;~ Mkt.RF + SMB + HML + MSFT.Rf&quot;))</code></pre>
+<p>For the training estimation I use vague but proper priors: independent <span class="math">\(N(0,100)\)</span> for the regression coefficients and <span class="math">\(W(12, I_{10}/100)\)</span> for the precision matrix which corresponds to prior expectation of <span class="math">\(100 \times I_{10}\)</span> for the associated <em>covariance matrix</em>. Setting the degrees of freedom equal to 12 gives the most diffuse prior possible subject to the constraint that the expected value of the covariance matrix is finite. Results are based on 5000 simulated posterior draws after a burn-in of 1000 draws.</p>
 <p>Let’s take a look at the results of fitting the training sample for the CAPM without an intercept:</p>
 <pre class="r"><code>train_results &lt;- defaultSUR(model.matrix(models[[1]], train), Y_train)</code></pre>
 <p>The posterior means for the industry portfolio betas look reasonable:</p>
 <pre class="r"><code>rowMeans(train_results$g_draws)</code></pre>
-<pre><code>##  [1] 1.0342696 1.1388030 1.0897269 0.7085583 1.1261077 0.8032495 1.2056145
-##  [8] 1.0555454 0.4848945 1.0714102</code></pre>
-<p>But the variances are probably too small to use as a prior:</p>
-<pre class="r"><code>var(t(train_results$g_draws))</code></pre>
-<pre><code>##                [,1]          [,2]          [,3]          [,4]
-##  [1,]  0.0026276668 -0.0013396192 -4.344285e-04 -0.0008109721
-##  [2,] -0.0013396192  0.0062701337  1.037559e-03 -0.0004784955
-##  [3,] -0.0004344285  0.0010375586  1.511763e-03 -0.0002236888
-##  [4,] -0.0008109721 -0.0004784955 -2.236888e-04  0.0062317023
-##  [5,] -0.0012260653  0.0016879439  6.391502e-04 -0.0012310905
-##  [6,]  0.0002618512 -0.0012135207 -7.021616e-04  0.0006933560
-##  [7,]  0.0007768192 -0.0002103139 -2.249323e-05 -0.0015654380
-##  [8,]  0.0012240597 -0.0021098279 -4.673430e-04 -0.0008493932
-##  [9,]  0.0002904649 -0.0011047124 -9.464586e-04  0.0008487196
-## [10,] -0.0005693088  0.0003675412 -1.176976e-04 -0.0006385254
-##                [,5]          [,6]          [,7]          [,8]
-##  [1,] -1.226065e-03  0.0002618512  7.768192e-04  0.0012240597
-##  [2,]  1.687944e-03 -0.0012135207 -2.103139e-04 -0.0021098279
-##  [3,]  6.391502e-04 -0.0007021616 -2.249323e-05 -0.0004673430
-##  [4,] -1.231091e-03  0.0006933560 -1.565438e-03 -0.0008493932
-##  [5,]  5.051629e-03 -0.0017938315  4.227221e-04 -0.0011340492
-##  [6,] -1.793832e-03  0.0041291644 -8.478380e-04 -0.0002814958
-##  [7,]  4.227221e-04 -0.0008478380  2.596446e-03  0.0002357984
-##  [8,] -1.134049e-03 -0.0002814958  2.357984e-04  0.0041719042
-##  [9,] -1.959231e-03  0.0017351991 -1.112591e-03 -0.0001438160
-## [10,] -2.268952e-05 -0.0001938115 -6.492620e-05 -0.0004843868
-##                [,9]         [,10]
-##  [1,]  0.0002904649 -5.693088e-04
-##  [2,] -0.0011047124  3.675412e-04
-##  [3,] -0.0009464586 -1.176976e-04
-##  [4,]  0.0008487196 -6.385254e-04
-##  [5,] -0.0019592308 -2.268952e-05
-##  [6,]  0.0017351991 -1.938115e-04
-##  [7,] -0.0011125909 -6.492620e-05
-##  [8,] -0.0001438160 -4.843868e-04
-##  [9,]  0.0042797214 -1.859077e-04
-## [10,] -0.0001859077  1.561528e-03</code></pre>
-<pre class="r"><code>#Omega_inv_mean &lt;- devech(rowMeans(train_results$Omega_inv_draws), ncol(Y_train))</code></pre>
+<pre><code>##  [1] 1.0342631 1.1353322 1.0885784 0.7102443 1.1268733 0.8029733 1.2055316
+##  [8] 1.0554315 0.4835123 1.0719976</code></pre>
+<p>But the standard deviations are probably too small to use as a prior:</p>
+<pre class="r"><code>sqrt(diag(var(t(train_results$g_draws))))</code></pre>
+<pre><code>##  [1] 0.05272476 0.08071645 0.03807633 0.07909555 0.07073850 0.06383867
+##  [7] 0.05125850 0.06614243 0.06499491 0.04051586</code></pre>
+<p>The posterior mean for the precision matrix is as follows:</p>
+<pre class="r"><code>Omega_inv_mean &lt;- devech(rowMeans(train_results$Omega_inv_draws), ncol(Y_train))
+Omega_inv_mean</code></pre>
+<pre><code>##              [,1]         [,2]        [,3]       [,4]        [,5]
+##  [1,]  0.33623540  0.031823883  0.07213964 0.06052650 0.087071063
+##  [2,]  0.03182388  0.120858438 -0.02920053 0.01847331 0.002417778
+##  [3,]  0.07213964 -0.029200533  0.51435370 0.05885530 0.059421657
+##  [4,]  0.06052650  0.018473310  0.05885530 0.14177171 0.067685590
+##  [5,]  0.08707106  0.002417778  0.05942166 0.06768559 0.202779435
+##  [6,]  0.01723337  0.026137979  0.06424813 0.02893815 0.065230468
+##  [7,] -0.05950944  0.023651754  0.06614415 0.07886206 0.033685009
+##  [8,] -0.01337524  0.053285383  0.07352921 0.05576862 0.068537304
+##  [9,]  0.01106379  0.016131955  0.11778869 0.03062368 0.076503945
+## [10,]  0.14075243  0.014398606  0.14972498 0.10512149 0.105942730
+##              [,6]        [,7]        [,8]        [,9]      [,10]
+##  [1,]  0.01723337 -0.05950944 -0.01337524  0.01106379 0.14075243
+##  [2,]  0.02613798  0.02365175  0.05328538  0.01613195 0.01439861
+##  [3,]  0.06424813  0.06614415  0.07352921  0.11778869 0.14972498
+##  [4,]  0.02893815  0.07886206  0.05576862  0.03062368 0.10512149
+##  [5,]  0.06523047  0.03368501  0.06853730  0.07650395 0.10594273
+##  [6,]  0.18784039  0.05480143  0.05337933 -0.01457535 0.05700449
+##  [7,]  0.05480143  0.30417737  0.05475592  0.08545917 0.05249711
+##  [8,]  0.05337933  0.05475592  0.20203384  0.05259797 0.09530458
+##  [9,] -0.01457535  0.08545917  0.05259797  0.21401389 0.06478131
+## [10,]  0.05700449  0.05249711  0.09530458  0.06478131 0.47482752</code></pre>
+<p>which corresponds to the following covariance matrix:</p>
+<pre class="r"><code>solve(Omega_inv_mean)</code></pre>
+<pre><code>##             [,1]       [,2]       [,3]       [,4]       [,5]       [,6]
+##  [1,]  5.0329591 -2.6076322 -0.8202783 -1.6195588 -2.1886491  0.4458355
+##  [2,] -2.6076322 11.9759758  1.9351498 -0.4508381  3.1549494 -2.1602616
+##  [3,] -0.8202783  1.9351498  2.8854530 -0.4260083  1.2223993 -1.3262499
+##  [4,] -1.6195588 -0.4508381 -0.4260083 11.7860141 -2.4661199  1.2518885
+##  [5,] -2.1886491  3.1549494  1.2223993 -2.4661199  9.5245118 -3.4303174
+##  [6,]  0.4458355 -2.1602616 -1.3262499  1.2518885 -3.4303174  8.0017537
+##  [7,]  1.5555053 -0.5137113  0.0149088 -3.1717991  0.7519388 -1.6370470
+##  [8,]  2.3310502 -4.0242139 -0.9422150 -1.6145393 -2.2246352 -0.4978854
+##  [9,]  0.5645023 -2.0297354 -1.8396113  1.6379159 -3.8008171  3.3267959
+## [10,] -1.0776967  0.5962790 -0.3061407 -1.1299889 -0.1177160 -0.2938271
+##              [,7]       [,8]       [,9]       [,10]
+##  [1,]  1.55550533  2.3310502  0.5645023 -1.07769668
+##  [2,] -0.51371129 -4.0242139 -2.0297354  0.59627899
+##  [3,]  0.01490880 -0.9422150 -1.8396113 -0.30614066
+##  [4,] -3.17179910 -1.6145393  1.6379159 -1.12998889
+##  [5,]  0.75193875 -2.2246352 -3.8008171 -0.11771597
+##  [6,] -1.63704700 -0.4978854  3.3267959 -0.29382711
+##  [7,]  5.19377172  0.4816068 -2.1388790 -0.09833844
+##  [8,]  0.48160682  8.2553875 -0.2128182 -1.03947001
+##  [9,] -2.13887905 -0.2128182  8.1485655 -0.27221399
+## [10,] -0.09833844 -1.0394700 -0.2722140  3.07229370</code></pre>
+<p>with diagonal elements:</p>
+<pre class="r"><code>diag(solve(Omega_inv_mean))</code></pre>
+<pre><code>##  [1]  5.032959 11.975976  2.885453 11.786014  9.524512  8.001754  5.193772
+##  [8]  8.255388  8.148566  3.072294</code></pre>
+<pre class="r"><code>rm(g_var, Omega_inv_mean)</code></pre>
+<pre><code>## Warning in rm(g_var, Omega_inv_mean): object 'g_var' not found</code></pre>
+<p>It’s difficult to interpret the off-diagonal elements here but the magnitudes of the diagonal elements seem reasonable given that the portfolio excess returns are expressed in percentage points, i.e. 3.4 means a 3.4% return.</p>
+</div>
+<div id="marginal-likelihood-comparisons" class="section level2">
+<h2>Marginal Likelihood Comparisons</h2>
+<p>For the marginal likelihood comparisons I’ll center the priors around the results from the training samples. Based on the results for the CAPM in the preceding section, however, if seems a bit too dogmatic to take the 100 observations literally as a dummy observation prior so I’ll make things a bit more diffuse. This is a bit arbitrary, but for the moment I’ll give the Wishart prior 35 degrees of freedom, equivalent to augmenting the prior for the training sample with 20 dummy observations rather than the 100 we actually used. I’ll likewise scale up the posterior standard deviations from the training sample by a factor of five. For simplicity I’ll use independent priors for the regression coefficients.</p>
+<pre class="r"><code>get_logML &lt;- function(model_formula){
+  train_results &lt;- defaultSUR(model.matrix(model_formula, train), Y_train)
+  g0 &lt;- rowMeans(train_results$g_draws)
+  g_sd &lt;- sqrt(diag(var(t(train_results$g_draws))))
+  G0 &lt;- diag((g_sd * 5)^2)
+  d &lt;- ncol(Y_train)
+  r0 &lt;- d + 2 + 20
+  Omega_inv_mean &lt;- devech(rowMeans(train_results$Omega_inv_draws), d)
+  R0 &lt;- Omega_inv_mean / r0
+  logML_SUR(model.matrix(model_formula, fit), Y_fit, G0, g0, R0, r0)
+}</code></pre>
+<p>Here are the results:</p>
+<pre class="r"><code>set.seed(7283)
+results &lt;- lapply(seq_along(models), function(i) get_logML(models[[i]]))
+results &lt;- data.frame(model = as.character(models), logML = unlist(results))
+results</code></pre>
+<pre><code>##                               model     logML
+## 1                       ~Mkt.RF - 1 -6051.111
+## 2                           ~Mkt.RF -6054.125
+## 3           ~Mkt.RF + SMB + HML - 1 -5931.999
+## 4               ~Mkt.RF + SMB + HML -5934.473
+## 5             ~Mkt.RF + MSFT.Rf - 1 -6070.734
+## 6                 ~Mkt.RF + MSFT.Rf -6073.900
+## 7 ~Mkt.RF + SMB + HML + MSFT.Rf - 1 -5965.263
+## 8     ~Mkt.RF + SMB + HML + MSFT.Rf -5969.312</code></pre>
+</div>
 
 
 </div>

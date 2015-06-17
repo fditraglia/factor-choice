@@ -5,6 +5,7 @@ date: "June 16, 2015"
 output: html_document
 ---
 
+## Preliminaries
 First I'll load my (in-progress) package for Bayesian analysis of factor asset pricing models:
 ```{r}
 library(zoofactr)
@@ -23,8 +24,11 @@ and equal-weighted:
 ```{r}
 head(industry10$equal)
 ```
+
+## Constructing the "Microsoft Factor"
+
 We'll pull in Microsoft returns form Yahoo finance using the ``quandl`` package
-```{r}
+```{r,cache=TRUE}
 msft <- Quandl::Quandl("YAHOO/MSFT", type = "raw", transformation = "rdiff",
                        collapse = "monthly", sort = "asc")
 head(msft)
@@ -52,6 +56,8 @@ and then create the "Microsoft Factor"
 SURdata$MSFT.Rf <- with(SURdata, MSFT - RF)
 rm(msft)
 ```
+
+## Training Sample Prior
 Now we'll use the first 100 rows of ``SURdata`` as a "training sample" to form a data-based prior for marginal likelihood comparisons in the subsequent sample:
 ```{r}
 train <- SURdata[1:100,]
@@ -80,6 +86,7 @@ models <- list(formula("~ Mkt.RF - 1"),
 ```
 For the training estimation I use vague but proper priors: independent $N(0,100)$ for the regression coefficients and $W(12, I_{10}/100)$ for the precision matrix which corresponds to prior expectation of $100 \times I_{10}$ for the associated *covariance matrix*.
 Setting the degrees of freedom equal to 12 gives the most diffuse prior possible subject to the constraint that the expected value of the covariance matrix is finite.
+Results are based on 5000 simulated posterior draws after a burn-in of 1000 draws.
 
 Let's take a look at the results of fitting the training sample for the CAPM without an intercept:
 ```{r}
@@ -89,11 +96,53 @@ The posterior means for the industry portfolio betas look reasonable:
 ```{r}
 rowMeans(train_results$g_draws)
 ```
-But the variances are probably too small to use as a prior:
+But the standard deviations are probably too small to use as a prior:
 ```{r}
-var(t(train_results$g_draws))
-#Omega_inv_mean <- devech(rowMeans(train_results$Omega_inv_draws), ncol(Y_train))
+sqrt(diag(var(t(train_results$g_draws))))
 ```
+The posterior mean for the precision matrix is as follows:
+```{r}
+Omega_inv_mean <- devech(rowMeans(train_results$Omega_inv_draws), ncol(Y_train))
+Omega_inv_mean
+```
+which corresponds to the following covariance matrix:
+```{r}
+solve(Omega_inv_mean)
+```
+with diagonal elements:
+```{r}
+diag(solve(Omega_inv_mean))
+rm(g_var, Omega_inv_mean)
+```
+It's difficult to interpret the off-diagonal elements here but the magnitudes of the diagonal elements seem reasonable given that the portfolio excess returns are expressed in percentage points, i.e. 3.4 means a 3.4% return.
+
+## Marginal Likelihood Comparisons
+For the marginal likelihood comparisons I'll center the priors around the results from the training samples.
+Based on the results for the CAPM in the preceding section, however, if seems a bit too dogmatic to take the 100 observations literally as a dummy observation prior so I'll make things a bit more diffuse.
+This is a bit arbitrary, but for the moment I'll give the Wishart prior 35 degrees of freedom, equivalent to augmenting the prior for the training sample with 20 dummy observations rather than the 100 we actually used.
+I'll likewise scale up the posterior standard deviations from the training sample by a factor of five. For simplicity I'll use independent priors for the regression coefficients.
+
+```{r}
+get_logML <- function(model_formula){
+  train_results <- defaultSUR(model.matrix(model_formula, train), Y_train)
+  g0 <- rowMeans(train_results$g_draws)
+  g_sd <- sqrt(diag(var(t(train_results$g_draws))))
+  G0 <- diag((g_sd * 5)^2)
+  d <- ncol(Y_train)
+  r0 <- d + 2 + 20
+  Omega_inv_mean <- devech(rowMeans(train_results$Omega_inv_draws), d)
+  R0 <- Omega_inv_mean / r0
+  logML_SUR(model.matrix(model_formula, fit), Y_fit, G0, g0, R0, r0)
+}
+```
+Here are the results:
+```{r, cache=TRUE}
+set.seed(7283)
+results <- lapply(seq_along(models), function(i) get_logML(models[[i]]))
+results <- data.frame(model = as.character(models), logML = unlist(results))
+results
+```
+
 
 
 

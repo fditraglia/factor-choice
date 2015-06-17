@@ -130,3 +130,6 @@ sympy-plots-for-*.tex/
 
 # R stuff
 *.Rhistory
+
+#Knitr cache
+*_cache

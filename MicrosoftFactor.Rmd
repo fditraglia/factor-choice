@@ -1,0 +1,107 @@
+---
+title: "Microsoft as a Factor?"
+author: "Frank"
+date: "June 16, 2015"
+output: html_document
+---
+
+First I'll load my (in-progress) package for Bayesian analysis of factor asset pricing models:
+```{r}
+library(zoofactr)
+```
+If you haven't already installed ``zoofactr``, you can do so using Hadley Wickham's ``devtools`` package as follows: ``devtools::install_github("fditraglia/zoofactr")``.)
+
+The Fama-French five factors are available in ``zoofactr``
+```{r}
+head(ff5)
+```
+as are the ten industry portfolios, both value-weighted:
+```{r}
+head(industry10$value)
+```
+and equal-weighted:
+```{r}
+head(industry10$equal)
+```
+We'll pull in Microsoft returns form Yahoo finance using the ``quandl`` package
+```{r}
+msft <- Quandl::Quandl("YAHOO/MSFT", type = "raw", transformation = "rdiff",
+                       collapse = "monthly", sort = "asc")
+head(msft)
+```
+and then create a ``month`` column to match our other dataframes:
+```{r}
+msft$month <- substr(msft$Date, 1, 7)
+msft$month <- gsub("-", "", msft$month)
+```
+before removing the columns we don't need:
+```{r}
+msft <- data.frame(month = msft$month, MSFT = 100 * msft$`Adjusted Close`)
+head(msft)
+```
+Notice that we multiply Microsoft returns by 100 so they will be in the same units as the columns of ``ff5`` which are in *percentage points* rather than decimal percents.
+
+Now we can merge everything that we'll use to run the SUR regressions:
+```{r}
+SURdata <- merge(ff5, msft, by = "month")
+SURdata <- merge(SURdata, industry10$value, by = "month")
+head(SURdata)
+```
+and then create the "Microsoft Factor"
+```{r}
+SURdata$MSFT.Rf <- with(SURdata, MSFT - RF)
+rm(msft)
+```
+Now we'll use the first 100 rows of ``SURdata`` as a "training sample" to form a data-based prior for marginal likelihood comparisons in the subsequent sample:
+```{r}
+train <- SURdata[1:100,]
+fit <- SURdata[-c(1:100),] 
+rm(SURdata)
+```
+Now we construct the "Y"-variables for the regressions by converting the industry portfolio returns to excess returns
+```{r}
+industry_names <- setdiff(names(industry10$value), "month")
+Y_train <- as.matrix(train[,industry_names])
+Y_fit <- as.matrix(fit[,industry_names])
+rm(industry_names)
+Y_train <- Y_train - train$RF
+Y_fit <- Y_fit - fit$RF
+```
+To start we'll consider the following models:
+```{r}
+models <- list(formula("~ Mkt.RF - 1"),
+               formula("~ Mkt.RF"),
+               formula("~ Mkt.RF + SMB + HML - 1"),
+               formula("~ Mkt.RF + SMB + HML"),
+               formula("~ Mkt.RF + MSFT.Rf - 1"),
+               formula("~ Mkt.RF + MSFT.Rf"),
+               formula("~ Mkt.RF + SMB + HML + MSFT.Rf - 1"),
+               formula("~ Mkt.RF + SMB + HML + MSFT.Rf"))
+```
+For the training estimation I use vague but proper priors: independent $N(0,100)$ for the regression coefficients and $W(12, I_{10}/100)$ for the precision matrix which corresponds to prior expectation of $100 \times I_{10}$ for the associated *covariance matrix*.
+Setting the degrees of freedom equal to 12 gives the most diffuse prior possible subject to the constraint that the expected value of the covariance matrix is finite.
+
+Let's take a look at the results of fitting the training sample for the CAPM without an intercept:
+```{r}
+train_results <- defaultSUR(model.matrix(models[[1]], train), Y_train)
+```
+The posterior means for the industry portfolio betas look reasonable:
+```{r}
+rowMeans(train_results$g_draws)
+```
+But the variances are probably too small to use as a prior:
+```{r}
+var(t(train_results$g_draws))
+#Omega_inv_mean <- devech(rowMeans(train_results$Omega_inv_draws), ncol(Y_train))
+```
+
+
+
+
+
+
+
+
+
+
+

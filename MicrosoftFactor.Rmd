@@ -136,11 +136,11 @@ get_logML <- function(model_formula){
 }
 ```
 Here are the results:
-```{r, cache=TRUE}
-set.seed(7283)
+```{r}
+set.seed(1234)
 results <- lapply(seq_along(models), function(i) get_logML(models[[i]]))
 results <- data.frame(model = as.character(models), logML = unlist(results))
-results
+results[order(results$logML, decreasing = TRUE),]
 ```
 
 

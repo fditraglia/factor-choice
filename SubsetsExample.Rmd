@@ -1,0 +1,124 @@
+---
+title: "A Small Example"
+author: "Frank"
+date: "October 11th, 2015"
+output: html_document
+---
+This is a small example in which we enumerate a universe of all possible factor models using a small group of factors and see which are favored by the marginal likelihood, both with and without an intercept.
+In particular, we'll examine the Fama-French five factors, Carhart's Momentum factor and Pastor & Stambaugh's Liquidity factor and construct models to price ten value-weighted industry portfolios using a Bayesian SUR model with a training-sample prior.
+
+
+## Preliminaries
+First I'll load my (in-progress) package for Bayesian analysis of factor asset pricing models:
+```{r}
+library(zoofactr)
+```
+If you haven't already installed ``zoofactr``, you can do so using Hadley Wickham's ``devtools`` package as follows: ``devtools::install_github("fditraglia/zoofactr")``.)
+
+The Fama-French five factors are available in ``zoofactr``
+```{r}
+head(ff5)
+```
+as is the momentum factor
+```{r}
+head(mom)
+```
+and the liquidity factor
+```{r}
+head(liq)
+```
+For the liquidity factor, we want the traded version of the liquidity factor: 
+```{r}
+head(liq$LIQv)
+```
+Data for the ten industry portfolios are also in the package.
+We'll use value-weighted returns for this exercise: 
+```{r}
+head(industry10$value)
+```
+
+I'm not sure that the liquidity factor is actually a return.
+At the very least, it doesn't appear to have the same units as the other factors, which are expressed in percentage points...
+
+
+Now we'll merge all of the series together:
+```{r}
+SURdata <- merge(ff5, mom, by = "month")
+SURdata <- merge(SURdata, liq[,c(1,4)], by = "month")
+SURdata <- merge(SURdata, industry10$value, by = "month")
+SURdata <- na.omit(SURdata)
+head(SURdata)
+tail(SURdata)
+```
+Need to rescale everything to be in the same units as the liquidity factor, i.e. convert to decimal
+```{r}
+SURdata[,-c(1,9)] <- SURdata[,-c(1,9)]/100
+```
+Now we construct the "Y"-variables for the regressions by converting the industry portfolio returns to excess returns
+```{r}
+industry_names <- setdiff(names(industry10$value), "month")
+Y <- as.matrix(SURdata[,industry_names])
+Y <- Y - SURdata$RF
+row.names(Y) <- SURdata$month
+```
+And the "X"-variables by augmenting the matrix of factors with a constant:
+```{r}
+factor_names <- setdiff(names(SURdata), c("month", "RF", industry_names))
+X <- cbind(rep(1, nrow(SURdata)), SURdata[,factor_names])
+names(X)[1] <- "const"
+row.names(X) <- SURdata$month
+X <- as.matrix(X)
+```
+Now, we break ``X`` and ``Y`` into training and fitting periods: data from the former will be used to construct a prior for estimation using data from the latter.
+The test period begins in 1980, giving us 144 training observations in this sample:
+```{r}
+end_train <- which(row.names(X) == "197912")
+end_train
+X_train <- X[1:end_train,]
+Y_train <- Y[1:end_train,]
+X_fit <- X[-(1:end_train),]
+Y_fit <- Y[-(1:end_train),]
+```
+Now we'll clean up:
+```{r}
+rm(SURdata, X, Y, end_train, factor_names, industry_names)
+```
+
+Now, we will be calculating the marginal likelihood of the SUR model based on every possible subset of the columns of ``X`` so we first need to create a list of column indices:
+```{r}
+#K <- ncol(X_fit)
+K <- ncol(X_train)
+models_list <- lapply(1:K, 
+              function(m) combn(1:K, m, simplify = FALSE))
+models_list <- do.call(c, models_list)
+length(models_list)
+```
+For each element of ``models_list`` we will apply the following function:
+```{r}
+get_logML <- function(model_indices){
+  train_results <- defaultSUR(X_train[,model_indices, drop = FALSE], Y_train, coef_scale = 2, cov_scale = 0.1)
+  g0 <- rowMeans(train_results$g_draws)
+  G0 <- 4 * var(t(train_results$g_draws))
+  d <- ncol(Y_train)
+  r0 <- d + 20
+  Omega_inv_mean <- devech(rowMeans(train_results$Omega_inv_draws), d)
+  R0 <- Omega_inv_mean / r0
+  logML <- logML_SUR(X_fit[,model_indices, drop = FALSE], Y_fit, G0, g0, R0, r0)
+  model_name <- paste(colnames(X_fit)[model_indices], collapse = " + ")
+  return(data.frame(model = model_name, logML = logML))
+}
+```
+Here are the results:
+```{r}
+set.seed(7283)
+results <- do.call(rbind, lapply(models_list, get_logML))
+results[order(results$logML, decreasing = TRUE),]
+```
+
+
+
+
+
+
+
+

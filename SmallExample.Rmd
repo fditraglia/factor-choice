@@ -1,0 +1,176 @@
+---
+title: "A Small Example"
+author: "Frank"
+date: "October 10th, 2015"
+output: html_document
+---
+This is a small example in which we enumerate a universe of all possible factor models using a small group of factors and see which are favored by the marginal likelihood, both with and without an intercept.
+In particular, we'll examine the Fama-French five factors, Carhart's Momentum factor and Pastor & Stambaugh's Liquidity factor and construct models to price ten equal-weighted industry portfolios using a Bayesian SUR model with a training-sample prior.
+
+
+## Preliminaries
+First I'll load my (in-progress) package for Bayesian analysis of factor asset pricing models:
+```{r}
+library(zoofactr)
+```
+If you haven't already installed ``zoofactr``, you can do so using Hadley Wickham's ``devtools`` package as follows: ``devtools::install_github("fditraglia/zoofactr")``.)
+
+The Fama-French five factors are available in ``zoofactr``
+```{r}
+head(ff5)
+```
+as is the momentum factor
+```{r}
+head(mom)
+```
+and the liquidity factor
+```{r}
+head(liq)
+```
+For the liquidity factor, we want the traded version of the liquidity factor: 
+```{r}
+head(liq$LIQv)
+```
+Data for the ten industry portfolios are also in the package.
+We'll use equal-weighted returns for this exercise: 
+```{r}
+head(industry10$equal)
+```
+
+I'm not sure that the liquidity factor is actually a return.
+At the very least, it doesn't appear to have the same units as the other factors, which are expressed in percentage points...
+
+
+Now we'll merge all of the series together:
+```{r}
+SURdata <- merge(ff5, mom, by = "month")
+SURdata <- merge(SURdata, liq[,c(1,4)], by = "month")
+SURdata <- merge(SURdata, industry10$value, by = "month")
+head(SURdata)
+tail(SURdata)
+```
+Need to rescale everything to be in the same units as the liquidity factor, i.e. convert to decimal
+```{r}
+SURdata[,-c(1,9)] <- SURdata[,-c(1,9)]/100
+```
+
+
+## Training Sample Prior
+Now we'll use the pre-1980 data (the first 198 rows of ``SURdata``) to construct a training sample prior 
+```{r}
+train <- SURdata[1:198,]
+fit <- SURdata[-c(1:198),] 
+rm(SURdata)
+```
+Now we construct the "Y"-variables for the regressions by converting the industry portfolio returns to excess returns
+```{r}
+industry_names <- setdiff(names(industry10$value), "month")
+Y_train <- as.matrix(train[,industry_names])
+Y_fit <- as.matrix(fit[,industry_names])
+rm(industry_names)
+Y_train <- Y_train - train$RF
+Y_fit <- Y_fit - fit$RF
+```
+
+Let's take a look at the results of fitting the training sample for the CAPM without an intercept:
+```{r}
+train_results0 <- defaultSUR(model.matrix(formula(~ Mkt.RF - 1), train), Y_train, coef_scale = 2^2, cov_scale = 0.7^2)
+```
+and with an intercept:
+```{r}
+train_results1 <- defaultSUR(model.matrix(formula(~ Mkt.RF), train), Y_train, coef_scale = 2^2, cov_scale = 0.7^2)
+```
+The function ``defaultSUR`` is a wrapper to the C++ class ``SURidentical`` for drawing from the posterior of a normal SUR model with normal errors that places a Wishart prior on the precision matrix and normal prior on the regression coefficients.
+The prior used by ``defaultSUR`` uses independent $N(0,s^2)$ priors for the regression coefficients, where the user is free to specify $s$ via the argument ``coef_scale`` which defaults to 10, and a $W_d(d + 2, I_d/v^2)$ prior for the precision matrix, where the user is free to specify $v$ via the argument ``cov_scale`` which also defaults to 10.
+Recall that a $W_d(\nu, S)$ random variable has mean $\nu S$ while the expected value of its *inverse* is $S^-1/(\nu - d - 1)$.
+Setting degrees of freedom to $d+2$ produces the most diffuse distribution possible subject to the constraint that the mean of the *covariance matrix* corresponding to the precision matrix exists. 
+In the present example $d$ equals 10 since we are pricing ten industry portfolios.
+``defaultSUR`` makes 6000 posterior draws and discards the first 1000, restulting in a total of 5000 draws.
+
+The output returned by ``defaultSUR`` consists of two matrices:
+```{r}
+names(train_results0)
+```
+Each column of ``g_draws`` contains one posterior draw for the regression coefficients.
+These are stacked *test asset by test asset.*
+For example, in the CAPM model with an intercept, the first row of a given column for ``g_draws`` is the intercept for the *first* industry while the second row is the loading on the market return.
+The third row is the intercept for the *second* industry, and so on:
+the posterior draws for the regression coefficients
+```{r}
+rowMeans(train_results1$g_draws)
+#alphas
+rowMeans(train_results1$g_draws)[2 * 1:10 - 1]
+diag(var(t(train_results1$g_draws[2 * 1:10 - 1,])))
+#betas
+rowMeans(train_results1$g_draws)[2 * 1:10]
+diag(var(t(train_results1$g_draws[2 * 1:10,])))
+```
+The second matrix, ``Omega_inv_draws``, contains posterior draws for the precision matrix.
+Each column corresponds to a single posterior draws for the *vech* of the precision matrix, which can be converted to its symmetric matrix representation using the ``devech`` function from the ``zoofactr`` package:
+```{r}
+devech(train_results1$Omega_inv_draws[,1], 10)
+```
+
+
+The posterior mean for the precision matrix is as follows:
+```{r}
+Omega_inv_mean <- devech(rowMeans(train_results$Omega_inv_draws), ncol(Y_train))
+Omega_inv_mean
+```
+which corresponds to the following covariance matrix:
+```{r}
+solve(Omega_inv_mean)
+```
+with diagonal elements:
+```{r}
+diag(solve(Omega_inv_mean))
+rm(g_var, Omega_inv_mean)
+```
+It's difficult to interpret the off-diagonal elements here but the magnitudes of the diagonal elements seem reasonable given that the portfolio excess returns are expressed in percentage points, i.e. 3.4 means a 3.4% return.
+
+## Try Looking at a few different training sample priors
+```{r}
+train_results2 <- defaultSUR(model.matrix(formula(~ Mkt.RF + SMB + HML), train), Y_train, coef_scale = 2^2, cov_scale = 0.7^2)
+rowMeans(train_results2$g_draws)
+train_results3 <- defaultSUR(model.matrix(formula(~ SMB), train), Y_train, coef_scale = 2^2, cov_scale = 0.7^2)
+rowMeans(train_results3$g_draws)
+```
+
+
+
+## Marginal Likelihood Comparisons
+For the marginal likelihood comparisons I'll center the priors around the results from the training samples.
+Based on the results for the CAPM in the preceding section, however, if seems a bit too dogmatic to take the 100 observations literally as a dummy observation prior so I'll make things a bit more diffuse.
+
+```{r}
+get_logML <- function(model_formula){
+  train_results <- defaultSUR(model.matrix(model_formula, train), Y_train)
+  g0 <- rowMeans(train_results$g_draws)
+  g_sd <- sqrt(diag(var(t(train_results$g_draws))))
+  G0 <- diag((g_sd * 5)^2)
+  d <- ncol(Y_train)
+  r0 <- d + 2 + 20
+  Omega_inv_mean <- devech(rowMeans(train_results$Omega_inv_draws), d)
+  R0 <- Omega_inv_mean / r0
+  logML_SUR(model.matrix(model_formula, fit), Y_fit, G0, g0, R0, r0)
+}
+```
+Here are the results:
+```{r, cache=TRUE}
+set.seed(7283)
+results <- lapply(seq_along(models), function(i) get_logML(models[[i]]))
+results <- data.frame(model = as.character(models), logML = unlist(results))
+results[order(results$logML, decreasing = TRUE),]
+```
+
+
+
+
+
+
+
+
+
+
+
+

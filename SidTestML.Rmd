@@ -1,0 +1,37 @@
+---
+title: "Test Marginal Likelihood"
+author: "Frank"
+date: "October 16, 2015"
+output: html_document
+---
+The file ``SidTestData.RData`` contains data for testing the marginal likelihood calculation for the SUR model from the ``zoofactr`` package:
+```{r}
+library(zoofactr)
+load("~/factor-choice/SidTestData.RData")
+```
+Loading this file adds a dataframe called ``prmdf`` to the environment:
+```{r}
+head(prmdf)
+```
+This data will be used to fit a two-equation SUR: ``prmibm ~ prmsp500`` and ``prmford ~ prmsp500`` in which Ford and IBM returns are regressed on the S&P500 index plus a constant.
+
+We specify the prior as follows:
+```{r}
+# Normal prior for regression coefficients
+beta0_ <- c(0,1,0,1) #mean vector
+B0v_ <- diag(c(0.0025, 0.045, 0.0025, 0.045)) #var-cov matrix
+
+# Wishart prior for the precision matrix of errors (inverse of var-cov) 
+rho0_ <- 8  # degrees of freedom
+R0_ <- diag(c(8000, 8000)) # scale matrix
+```
+We now calculate the marginal likelihood of this model based on 10000 posterior draws after discarding a burn-in sample of 1000 draws:
+```{r}
+logML_SUR(Y = as.matrix(prmdf[,c("prmibm", "prmford")]), 
+          X = cbind(rep(1, nrow(prmdf)), prmdf$prmsp500), 
+          G0 = B0v_, g0 = beta0_, R0 = R0_, r0 = rho0_, 
+          n_draws = 10000, burn_in = 1000)
+```
+When Sid ran this calculation independently, he got a result of 3715.552.
+
+

@@ -104,8 +104,8 @@ Using these definitions,
 \end{equation*}
 and, letting $R_{ii}$ denote the $i$th diagonal element of $R$,
 \begin{eqnarray*}
-  \log |\Sigma^{-1}| &=&  \log |R'R| = \log\left(|R'| \cdot |R|\right) = \log |R'| + \log |R| \\
-  &=& 2 \log|R| = 2 \cdot \sum_{i=1}^{p} \log R_{ii}
+  \frac{1}{2}\log |\Sigma^{-1}| &=&  \frac{1}{2}\log |R'R| = \frac{1}{2}\log\left(|R'| \cdot |R|\right) = \frac{1}{2}\left(\log |R'| + \log |R| \right)\\
+  &=&\frac{1}{2}\left( 2 \log|R|\right)=  \sum_{i=1}^{p} \log R_{ii}
 \end{eqnarray*} 
 since $|A| = |A'|$, $|AB| = |A| \cdot |B|$ and the determinant of a triangular matrix equals the product of its diagonal elements.
 Thus, we have
@@ -114,7 +114,7 @@ Thus, we have
 \end{equation*}
 The only term in the preceding expression that depends on $\mathbf{z}$ is $\mathbf{v}'\mathbf{v}$.
 We can calculate this term simultaneously for all columns of $Z$ as follows.
-First let $\widetilde{Z}$ denote the result of subtracting of subtracting the vector $\mu$ from each column of $Z$, i.e.\ $\widetilde{Z} = Z - \mu \mathbf{1}_n'$.
+First let $\widetilde{Z}$ denote the result subtracting of subtracting the vector $\mu$ from each column of $Z$, i.e.\ $\widetilde{Z} = Z - \mu \mathbf{1}_n'$.
 To calculate $\mathbf{v}'\mathbf{v}$ for each column of $Z$ we simply square the elements of $R\widetilde{Z}$ and take the column sums of the resulting matrix.
 
 
@@ -489,5 +489,45 @@ G_{0}^{-1}\gamma _{0}+\sum_{t=1}^{n}\lambda _{t}^{(g)}X_{t}^{\prime }\Omega
 G_{n,\lambda ^{(g)}}^{\ast }& =\left( G_{0}^{-1}+\sum_{t=1}^{n}\lambda
 _{t}^{(g)}X_{t}^{\prime }\Omega ^{-1\ast }X_{t}\right) ^{-1}
 \end{align*}
+
+\section{Numerical Details for Student-t Model}
+\subsection{Evaluating the Multivariate Student-t Density}
+As one of the steps in the calculation of the marginal likelihood we need to repeatedly evaluate the log of a multivariate Student-t density at a fixed set of parameter values.
+Let $Z$ be a $p\times n$ matrix, each of whose columns is a point $\mathbf{z}$ at which we wish to evaluate the log density.
+The expression for the density itself is
+\begin{equation*}
+  t_p\left( \mathbf{z}|\nu,\mu, \Sigma \right) = \frac{\Gamma\left[ (\nu + p)/2 \right]}{|\Sigma|^{1/2}\left( \nu\pi \right)^{p/2}\Gamma\left( \nu/2 \right)}\left[ 1 + \frac{1}{\nu}\left( \mathbf{z} - \mu \right)' \Sigma^{-1} \left( \mathbf{z} - \mu \right)\right]^{-\left( \nu + p \right)/2}
+\end{equation*}
+where scalar parameter $\nu$ is the degrees of freedom of the distribution while the $p\times 1$ vector $\mu$ is the location parameter and the positive definite $p\times p$ matrix $\Sigma$ is the scale matrix.
+If $\nu > 1$ then $E(\mathbf{z}) = \mu$. 
+If $\nu >2$ then $Var(\mathbf{z}) = \nu\Sigma/(\nu-2)$.
+For our problem, it makes sense to work in terms of the \emph{inverse} of the scale matrix, $\Sigma^{-1}$. 
+Parameterized in this way, the log of the multivariate Student-t density is given by
+  \begin{align*}
+    \log {t_p\left(\mathbf{z}|\nu,\mu, \Sigma^{-1} \right)} &= \log{\Gamma}\left[ \left( \nu + p \right)/2 \right] - \log{\Gamma}\left( \nu/2 \right) - \frac{p}{2}\log{(\nu \pi)}\\
+    &+ \frac{1}{2}\log{|\Sigma^{-1}|} - \frac{1}{2}(\nu + p) \log{ \left[ 1 + \frac{1}{\nu}\left(\mathbf{z} - \mu \right)' \Sigma^{-1} \left( \mathbf{z} - \mu \right)\right]}
+\end{align*}
+where we have used the fact that $|\Sigma|^{-1} = |\Sigma|^{-1}$ to write a positive $\frac{1}{2} \log |\Sigma^{-1}|$ term in place of a negative $\frac{1}{2}\log |\Sigma|$ term.
+Now, let $R$ be the Cholesky factor of $\Sigma^{-1}$ so that $\Sigma^{-1} = R'R$ and define $\tilde{\mathbf{z}} = \mathbf{z} - \mu$ and $\mathbf{v} = R\tilde{\mathbf{z}}$.
+Using these definitions,
+\begin{equation*}
+  \left( \mathbf{z} - \mu \right)' \Sigma^{-1} \left( \mathbf{z} - \mu \right) = (R\tilde{\mathbf{z}})'(R\tilde{\mathbf{z}}) = \mathbf{v}' \mathbf{v}
+\end{equation*}
+and, letting $R_{ii}$ denote the $i$th diagonal element of $R$,
+\begin{eqnarray*}
+  \frac{1}{2}\log |\Sigma^{-1}| &=&  \frac{1}{2}\log |R'R| = \frac{1}{2}\log\left(|R'| \cdot |R|\right) = \frac{1}{2}\left(\log |R'| + \log |R| \right)\\
+  &=&\frac{1}{2}\left( 2 \log|R|\right)=  \sum_{i=1}^{p} \log R_{ii}
+\end{eqnarray*} 
+since $|A| = |A'|$, $|AB| = |A| \cdot |B|$ and the determinant of a triangular matrix equals the product of its diagonal elements.
+Thus, we have
+  \begin{align*}
+    \log {t_p\left(\mathbf{z}|\nu,\mu, \Sigma^{-1} \right)} &= \log{\Gamma}\left[ \left( \nu + p \right)/2 \right] - \log{\Gamma}\left( \nu/2 \right) - \frac{p}{2}\log{(\nu \pi)}\\
+    &+ \mbox{trace}\left[\log \left(\mbox{diag}\left\{R  \right\}  \right)\right]  - \frac{1}{2}(\nu + p) \log{ \left[ 1 + \frac{1}{\nu} \mathbf{v}'\mathbf{v}\right]}
+\end{align*}
+The only term in the preceding expression that depends on $\mathbf{z}$ is $\mathbf{v}'\mathbf{v}$.
+We can calculate this term simultaneously for \emph{all columns} of $Z$ as follows.
+First let $\widetilde{Z}$ denote the result subtracting of subtracting the vector $\mu$ from each column of $Z$, i.e.\ $\widetilde{Z} = Z - \mu \mathbf{1}_n'$.
+To calculate $\mathbf{v}'\mathbf{v}$ for each column of $Z$ we simply square the elements of $R\widetilde{Z}$ and take the column sums of the resulting matrix.
+
 
 \end{document}

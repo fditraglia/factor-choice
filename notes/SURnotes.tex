@@ -374,6 +374,7 @@ posterior distribution.
 
 \section{Gibbs Sampler with Student-t Errors}
 
+\subsection{A Hierarchical Representation}
 Suppose now that the errors follow a multivariate Student-t distribution rather than a normal distribution: 
 \begin{equation*}
   \boldsymbol{\varepsilon}_{t}\sim t_{D,\nu }\left( 0,\Omega \right)
@@ -394,9 +395,11 @@ Using this representation, after conditioning on $\left( \nu, \boldsymbol{\lambd
 In any inference that we carry out, as well as in the calculation of the marginal likelihood, we will marginalize over $\boldsymbol{\lambda}$ by simply ignoring these draws.
 We will continue to place a normal prior on $\boldsymbol{\gamma}$ and a Wishart prior on $\Omega^{-1}$, exactly as we did when working with the normal likelihood above.
 
-\subsection{Fixed $\nu$}
-To begin, suppose for simplicity that the degrees of freedom parameter $\nu$ is fixed, i.e.\ specified in advance.
-In this case, the full set of conditional posteriors is as follows:
+\subsection{The Sampler}
+The sampler proceeds by fixing the degrees of freedom parameter $\nu$.
+If $\nu$ is to be chosen from the data, this can be accomplished using the marginal likelihood, as described below.
+Holding $\nu$ fixed, the full set of conditional posteriors is as follows:
+
 \paragraph{Regression Coefficients:} 
 $\boldsymbol{\gamma}|\Omega^{-1},Y_T \sim \mathcal{N}_p\left( \bar{\boldsymbol{\gamma}}_{\lambda},G_{T,\lambda} \right)$
 \begin{eqnarray*}
@@ -530,9 +533,35 @@ Everything else is the same as above, for example can pre-compute $R_{0}^{-1}$ a
 \subsection{Efficient Calculation of $G_{T,\lambda}$}
 In the case of the normal model, described above, we used clever matrix algebra to pre-compute quantities involved in the expression\footnote{Since the MV normal sample we have implement is in terms of the precision matrix rather than covariance matrix we work with $G_T^{-1}$ rather than its inverse $G_T$.}
 \begin{equation*}
-  G_T^{-1}
+  G_T^{-1} = G_0^{-1} + \sum_{t=1}^{T} X_t' \Omega^{-1}X_t 
 \end{equation*}
-In particular, we showed that
+We won't end up with such nice results as in the normal case here, but we can still express the calculations in a more convenient form by exploiting some of the same properties of the Kronecker product.
+Recall that
+\begin{equation*}
+  X_t'\Omega^{-1}X_t = \Omega^{-1} \otimes (\mathbf{x}_t' \otimes \mathbf{x}_t') = \Omega^{-1} \otimes (\mathbf{x}_t \mathbf{x}_t')
+\end{equation*}
+as we showed above in the discussion for the normal model.
+One further property of the Kronecker product that we did not use in our earlier calculations is the following:
+\begin{equation*}
+  (k A) \otimes B = A \otimes (kB) = k (A \otimes B)
+\end{equation*}
+if $k$ is a scalar and $A,B$ are matrices.
+Thus, since $\lambda_t$ is a scalar, 
+\begin{equation*}
+  \lambda_t X_t'\Omega^{-1}X_t =\lambda_t\left[ \Omega^{-1} \otimes (\mathbf{x}_t \mathbf{x}_t')\right] = \Omega^{-1} \otimes \left( \lambda_t \mathbf{x}_t \mathbf{x}_t'\right)
+\end{equation*}
+and thus, since the Kronecker product is bilinear, 
+\begin{equation*}
+  \sum_{t=1}^{T}\lambda_t X_t' \Omega^{-1} X_t = \Omega^{-1}\otimes \left(\sum_{t=1}^T  \lambda_t \mathbf{x}_t \mathbf{x}_t'\right) = \Omega^{-1} \otimes \left( \widetilde{X}' \Lambda \widetilde{X} \right)
+\end{equation*}
+where $\widetilde{X}$ and $\Lambda$ are defined in the preceding subsection on calculating $R_{T,\lambda}$.
+Thus, we have
+\begin{equation*}
+  G_{T,\lambda}^{-1} = G_0^{-1} + \Omega^{-1} \otimes \left( \widetilde{X}' \Lambda \widetilde{X} \right)
+\end{equation*}
+Unlike the case of the normal model, we cannot pre-compute the second term in the Kronecker product since it depends on $\Lambda$, which is updated in each iteration of the sampler.
+We could, however, pre-compute the matrices $\mathbf{x}_t \mathbf{x}_t'$ and then take the $\lambda$-weighted sum in each step of the sampler.
+It is unclear whether this efficiency gain is worth the trouble, but we could try it if things are running too slowly.
 
 \subsection{Efficient Calculation of $\bar{\boldsymbol{\gamma}}$}
 \subsection{Drawing $\lambda_t$}

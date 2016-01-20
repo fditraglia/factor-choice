@@ -1,5 +1,5 @@
 \documentclass[12pt]{article}
-\usepackage{enumerate}
+\usepackage{enumerate, hyperref}
 \usepackage{amsmath, amssymb}
 \linespread{1.2}
 
@@ -372,30 +372,47 @@ with the MCMC draws $\left\{ \gamma ^{(g)},\Omega ^{(g)}\right\} $ from the
 posterior distribution.
 
 
-\section{Student-t errors}
+\section{Student-t Errors}
 
-Suppose now that the errors are distributed as multivariate-t%
+Suppose now that the errors follow a multivariate Student-t distribution rather than a normal distribution: 
 \begin{equation*}
-\varepsilon _{t}\sim t_{d,\nu }\left( 0,\Omega \right)
-\end{equation*}%
-so that%
-\begin{equation*}
-E(\varepsilon _{t})=0\,,\;\nu >1
-\end{equation*}%
-\begin{equation*}
-Var\left( \varepsilon _{t}\right) =\frac{\nu }{\nu -2}\Omega ,\;\nu >2
-\end{equation*}%
-The analysis of this model utilizes the hierarchical reprentation
+  \boldsymbol{\varepsilon}_{t}\sim t_{D,\nu }\left( 0,\Omega \right)
+\end{equation*}
+where $\nu$ denotes the degrees of freedom of the distribution, the location parameter is zero and the scale matrix is $\Omega$.
+If $\nu >1$ then $E(\boldsymbol{\varepsilon}) = 0$. 
+If $\nu>2$ then $Var\left( \boldsymbol{\varepsilon} \right) = \nu \sigma/(n-2)$.
+Replacing the normal likelihood from above with the Student-t likelihood, however, breaks the conditional conjugacy that we exploited above to construct an MCMC algorithm based on the Gibbs sampler.
+The solution to this problem is to work with a hierarchical representation in which the Student-t likelihood is introduced as a scale mixtrure of normal distributions, in particular
 \begin{align*}
-\varepsilon _{t}|\lambda _{t} &\sim N\left( 0,\lambda _{t}^{-1}\Omega \right)
+  \boldsymbol{\varepsilon}_{t}|\lambda _{t} &\sim N\left( 0,\lambda _{t}^{-1}\Omega \right)
 \\
 \lambda _{t} &\sim G\left( \frac{\nu }{2},\frac{\nu }{2}\right)
-\end{align*}%
-which means that conditioned on $\left( \nu ,\left\{ \lambda _{t}\right\}
-\right) $, the results presented for the Gaussian model can be applied with
-minor modifications. The MCMC\ sampling is completed with the sampling of $%
-\left( \nu ,\left\{ \lambda _{t}\right\} \right) $.
+\end{align*}
+where $G(\alpha,\beta)$ denotes the Gamma distribution with shape parameter $\alpha$ and rate parameter $\beta$.
+(See below for more discussion on the parameterization of the gamma distribution.)
+Using this representation, after conditioning on $\left( \nu, \boldsymbol{\lambda} \right)$, where $\boldsymbol{\lambda} = (\lambda_1, \dots \lambda_T)'$, we are essentially back in the familiar normal case from above.
+In any inference that we carry out, as well as in the calculation of the marginal likelihood, we will marginalize over $\boldsymbol{\lambda}$ by simply ignoring these draws.
+To begin, suppose that $\nu$ is fixed.
+Later we will consider putting a prior over $\nu$ as well.
 
+\subsection{Fixed $\nu$}
+To begin, suppose for simplicity that the degrees of freedom parameter $\nu$ is fixed, i.e.\ specified in advance.
+In this case, the full set of conditional posteriors is as follows:
+\paragraph{Regression Coefficients:} 
+$\boldsymbol{\gamma}|\Omega^{-1},Y_T \sim \mathcal{N}_p\left( \bar{\boldsymbol{\gamma}}_{\lambda},G_{T,\lambda} \right)$
+\begin{eqnarray*}
+  G_{T,\lambda} &=& \left[ G_0^{-1} + \sum_{t=1}^T \lambda_t X_t' \Omega^{-1} X_t \right]^{-1}\\
+  \bar{\boldsymbol{\gamma}}_{\lambda} &=& G_{T,\lambda} \left[ G_0^{-1}\boldsymbol{\gamma}_0 + \sum_{t=1}^{T}\lambda_t X_t'\Omega^{-1}\mathbf{y}_t \right]
+\end{eqnarray*}
+\paragraph{Inverse Scale Matrix:}
+$\Omega^{-1}|Y_T \sim \mathcal{W}_D\left(\rho_0 + T, R_T \right)$
+\begin{equation*}
+  R_T = \left[ R_0^{-1} + \sum_{t=1}^{T} \left( \mathbf{y}_t - X_t \boldsymbol{\gamma} \right)\left( \mathbf{y}_t - X_t \boldsymbol{\gamma} \right)' \right]^{-1}
+\end{equation*}
+
+\paragraph{Auxiliary Parameter:} $\lambda_t|\boldsymbol{\gamma}, \nu, Y_T \sim G\left(\displaystyle \frac{\nu + D}{2}, \frac{\nu + \boldsymbol{\varepsilon}_t' \boldsymbol{\varepsilon}_t}{2} \right)$, $\boldsymbol{\varepsilon}_t = \mathbf{y}_t - X_t \boldsymbol{\gamma}$
+
+\subsection{A Prior over $\nu$}
 Following Albert and Chib (1993), let us assume that the support of $\nu $
 is the set of values $\left\{ \nu _{j}\right\} _{j=1}^{J}$, for example, $%
 \left\{ 4,6,8,10,12,14,16\right\} $ and that a priori
@@ -547,10 +564,13 @@ Thus, we have
     \log {t_p\left(\mathbf{z}|\nu,\mu, \Sigma^{-1} \right)} &= \log{\Gamma}\left[ \left( \nu + p \right)/2 \right] - \log{\Gamma}\left( \nu/2 \right) - \frac{p}{2}\log{(\nu \pi)}\\
     &+ \mbox{trace}\left[\log \left(\mbox{diag}\left\{R  \right\}  \right)\right]  - \frac{1}{2}(\nu + p) \log{ \left[ 1 + \frac{1}{\nu} \mathbf{v}'\mathbf{v}\right]}
 \end{align*}
-The only term in the preceding expression that depends on $\mathbf{z}$ is $\mathbf{v}'\mathbf{v}$.
+Note that, since $\mathbf{v}'\mathbf{v}/\nu$ could be very close to zero, it is best to implement $\texttt{log1p}(\mathbf{v}'\mathbf{v}/\nu)$.
+An explanation of \texttt{log1p} is given 
+\href{http://www.johndcook.com/blog/2010/06/07/math-library-functions-that-seem-unnecessary/}{here}.
+
+Note that the only term in the log density expression that depends on $\mathbf{z}$ is $\mathbf{v}'\mathbf{v}$.
 We can calculate this term simultaneously for \emph{all columns} of $Z$ as follows.
 First let $\widetilde{Z}$ denote the result subtracting of subtracting the vector $\mu$ from each column of $Z$, i.e.\ $\widetilde{Z} = Z - \mu \mathbf{1}_n'$.
 To calculate $\mathbf{v}'\mathbf{v}$ for each column of $Z$ we simply square the elements of $R\widetilde{Z}$ and take the column sums of the resulting matrix.
-
 
 \end{document}

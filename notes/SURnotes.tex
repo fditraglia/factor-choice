@@ -85,7 +85,7 @@ Using the full set of conditional posteriors, given in the preceding section, we
 Note that in iteration $g$, $G_T^{(g)}$ and $\bar{\boldsymbol{\gamma}}^{(g)}$ are calculated using $\Omega^{-1(g-1)}$ while $R_T^{(g)}$ is calculated using $\boldsymbol{\gamma}^{(0)}$.
 This is because we choose to initialize the sample with a starting value $\Omega^{-1(0)}$ for the precision matrix rather than for the vector of regression coefficients.
 
-\section{Numerical Details}
+\section{Computational Details}
 
 \subsection{Evaluating the MV Normal Density}
 As one of the steps in the calculation of the marginal likelihood (see below) we will need to repeatedly evaluate the log of a multivariate normal density at a fixed set of parameter values.
@@ -372,7 +372,7 @@ with the MCMC draws $\left\{ \gamma ^{(g)},\Omega ^{(g)}\right\} $ from the
 posterior distribution.
 
 
-\section{Student-t Errors}
+\section{Gibbs Sample with Student-t Errors}
 
 Suppose now that the errors follow a multivariate Student-t distribution rather than a normal distribution: 
 \begin{equation*}
@@ -405,109 +405,18 @@ $\boldsymbol{\gamma}|\Omega^{-1},Y_T \sim \mathcal{N}_p\left( \bar{\boldsymbol{\
   \bar{\boldsymbol{\gamma}}_{\lambda} &=& G_{T,\lambda} \left[ G_0^{-1}\boldsymbol{\gamma}_0 + \sum_{t=1}^{T}\lambda_t X_t'\Omega^{-1}\mathbf{y}_t \right]
 \end{eqnarray*}
 \paragraph{Inverse Scale Matrix:}
-$\Omega^{-1}|Y_T \sim \mathcal{W}_D\left(\rho_0 + T, R_T \right)$
+$\Omega^{-1}|Y_T \sim \mathcal{W}_D\left(\rho_0 + T, R_{T,\lambda}\right)$
 \begin{equation*}
-  R_T = \left[ R_0^{-1} + \sum_{t=1}^{T} \left( \mathbf{y}_t - X_t \boldsymbol{\gamma} \right)\left( \mathbf{y}_t - X_t \boldsymbol{\gamma} \right)' \right]^{-1}
+  R_{T,\lambda} = \left[ R_0^{-1} + \sum_{t=1}^{T} \lambda_t\left( \mathbf{y}_t - X_t \boldsymbol{\gamma} \right)\left( \mathbf{y}_t - X_t \boldsymbol{\gamma} \right)' \right]^{-1}
 \end{equation*}
 
 \paragraph{Auxiliary Parameter:} $\lambda_t|\boldsymbol{\gamma}, \nu, Y_T \sim G\left(\displaystyle \frac{\nu + D}{2}, \frac{\nu + \boldsymbol{\varepsilon}_t' \boldsymbol{\varepsilon}_t}{2} \right)$, $\boldsymbol{\varepsilon}_t = \mathbf{y}_t - X_t \boldsymbol{\gamma}$
 
-\subsection{A Prior over $\nu$}
-Following Albert and Chib (1993), let us assume that the support of $\nu $
-is the set of values $\left\{ \nu _{j}\right\} _{j=1}^{J}$, for example, $%
-\left\{ 4,6,8,10,12,14,16\right\} $ and that a priori
-\begin{equation*}
-\Pr \left( \nu =\nu _{j}\right) =q_{j}
-\end{equation*}%
-Then, simple calculations show that
-\begin{equation*}
-\gamma |Y_{n},\Omega ^{-1},\nu ,\left\{ \lambda _{t}\right\} \sim \mathcal{N}%
-_{d+p}\left( \hat{\gamma}_{\lambda },G_{n,\lambda }\right)
-\end{equation*}%
-where
-\begin{align*}
-\hat{\gamma}_{\lambda }& =G_{n,\lambda }\left( G_{0}^{-1}\gamma
-_{0}+\sum_{t=1}^{n}\lambda _{t}X_{t}^{\prime }\Omega ^{-1}y_{t}\right)  \\
-G_{n,\lambda }& =\left( G_{0}^{-1}+\sum_{t=1}^{n}\lambda _{t}X_{t}^{\prime
-}\Omega ^{-1}X_{t}\right) ^{-1}
-\end{align*}%
-and
-\begin{equation*}
-\Omega ^{-1}|Y_{n},\gamma ,\nu ,\left\{ \lambda _{t}\right\} \sim \mathcal{W}%
-_{d}\left( \rho _{0}+n,\left( R_{0}^{-1}+\sum_{t=1}^{n}\lambda _{t}\left(
-y_{t}-X_{t}\gamma \right) \left( y_{t}-X_{t}\gamma \right) ^{\prime }\right)
-^{-1}\right)
-\end{equation*}%
-Moreover,%
-\begin{equation*}
-\Pr \left( \nu =\nu _{j}|Y_{n},\gamma ,\Omega ^{-1}\right) \propto
-q_{j}\prod\limits_{t=1}^{n}t_{d,\nu _{j}}\left( y_{t}|X_{t}\gamma ,\Omega
-\right)
-\end{equation*}%
-and%
-\begin{equation*}
-\lambda _{t}|Y_{n},\gamma ,\nu \sim G\left( \frac{\nu +d}{2},\frac{\nu
-+\left( y_{t}-X_{t}\gamma \right) ^{\prime }\left( y_{t}-X_{t}\gamma \right)
-}{2}\right)
-\end{equation*}%
-One sweep of the MCMC\ sampling is completed by sampling these four
-distributions in this order.
+To implement the Gibbs sampler, we simply need to draw sequentially from these distributions, in the order given above. 
+We will require, however, starting values for both $\Omega^{-1}$ and each of the $\lambda_t$ parameters. 
+A reasonable starting value for $\lambda_t$ is one, which makes the initial draws for the regression coefficients and the inverse scale matrix the same as if were work withing with the normal model.
 
-\subsection{Marginal Likelihood}
-
-The Chib (1995) method can again be applied to find the log marginal
-likelihood as
-\begin{equation*}
-\log \Pr \left( \nu ^{\ast }\right) +\log \pi \left( \gamma ^{\ast }\right)
-+\log \pi \left( \Omega ^{-1\ast }\right) +\sum_{t=1}^{n}\log t_{d,\nu
-^{\ast }}\left( y_{t}|X_{t}\gamma ^{\ast },\Omega ^{\ast }\right) -\log \pi
-\left( \nu ^{\ast },\gamma ^{\ast },\Omega ^{-1\ast }|Y_{n}\right)
-\end{equation*}%
-where $\nu ^{\ast }$ is the posterior mode (which is easily computed from
-the sampled values), the last term is calculated as%
-\begin{equation*}
-\Pr \left( \nu ^{\ast }|Y_{n}\right) \times \pi \left( \Omega ^{-1\ast
-}|Y_{n},\nu ^{\ast }\right) \times \pi \left( \gamma ^{\ast }|Y_{n},\Omega
-^{-1\ast },\nu ^{\ast }\right)
-\end{equation*}%
-in which the first term is obtained from the posterior frequency
-distribution of $\nu $, the second term is obtained from a reduced run in
-which $\nu $ is fixed at $\nu ^{\ast }$ and the remaining three
-distributions are sampled and the draws
-\begin{equation*}
-\left\{ \gamma ^{(g)},\lambda _{t}^{(g)}\right\} _{g=1}^{G}
-\end{equation*}%
-from this reduced MCMC run are used to calculate $\pi \left( \Omega ^{-1\ast
-}|Y_{n},\nu ^{\ast }\right) $ as
-\begin{equation*}
-\frac{1}{G}\sum_{g=1}^{G}\mathcal{W}_{d}\left( \Omega ^{-1\ast }|\rho
-_{0}+n,\left( R_{0}^{-1}+\sum_{t=1}^{n}\lambda _{t}^{(g)}\left(
-y_{t}-X_{t}\gamma ^{(g)}\right) \left( y_{t}-X_{t}\gamma ^{(g)}\right)
-^{\prime }\right) ^{-1}\right)
-\end{equation*}%
-and the final term $\pi \left( \gamma ^{\ast }|Y_{n},\Omega ^{-1\ast
-}\right) $ is obtained from a second reduced run in which $\nu $ is fixed at
-$\nu ^{\ast }$ and $\Omega ^{-1}$ is fixed at $\Omega ^{-1\ast }$ and the
-draws
-\begin{equation*}
-\left\{ \lambda _{t}^{(g)}\right\}
-\end{equation*}%
-from this reduced run are used to give
-\begin{equation*}
-\pi (\gamma ^{\ast }|Y_{n},\Omega ^{-1\ast },\nu ^{\ast })=\frac{1}{G}%
-\sum_{g=1}^{G}\mathcal{N}_{d+p}\left( \gamma ^{\ast }|\hat{\gamma}_{\lambda
-^{(g)}}^{\ast },G_{n,\lambda ^{(g)}}^{\ast }\right)
-\end{equation*}%
-where%
-\begin{align*}
-\hat{\gamma}_{\lambda ^{(g)}}^{\ast }& =G_{n,\lambda ^{(g)}}^{\ast }\left(
-G_{0}^{-1}\gamma _{0}+\sum_{t=1}^{n}\lambda _{t}^{(g)}X_{t}^{\prime }\Omega
-^{-1\ast }y_{t}\right)  \\
-G_{n,\lambda ^{(g)}}^{\ast }& =\left( G_{0}^{-1}+\sum_{t=1}^{n}\lambda
-_{t}^{(g)}X_{t}^{\prime }\Omega ^{-1\ast }X_{t}\right) ^{-1}
-\end{align*}
-
-\section{Numerical Details for Student-t Model}
+\section{Computational Details for Student-t Model}
 
 \subsection{Parameterizing the Gamma Distribution}
 The Gamma distribution is can be parameterized in two different ways. 
@@ -572,5 +481,106 @@ Note that the only term in the log density expression that depends on $\mathbf{z
 We can calculate this term simultaneously for \emph{all columns} of $Z$ as follows.
 First let $\widetilde{Z}$ denote the result subtracting of subtracting the vector $\mu$ from each column of $Z$, i.e.\ $\widetilde{Z} = Z - \mu \mathbf{1}_n'$.
 To calculate $\mathbf{v}'\mathbf{v}$ for each column of $Z$ we simply square the elements of $R\widetilde{Z}$ and take the column sums of the resulting matrix.
+
+\subsection{Efficient Calculation of $R_{T,\lambda}$}
+\subsection{Efficient Calculation of $G_{T,\lambda}$}
+\subsection{Efficient Calculation of $\bar{\boldsymbol{\gamma}}$}
+\subsection{Drawing $\lambda_t$}
+We want to vectorize this step.
+
+\section{A Prior over $\nu$}
+Following Albert and Chib (1993), let us assume that the support of $\nu $
+is the set of values $\left\{ \nu _{j}\right\} _{j=1}^{J}$, for example, $%
+\left\{ 4,6,8,10,12,14,16\right\} $ and that a priori
+\begin{equation*}
+\Pr \left( \nu =\nu _{j}\right) =q_{j}
+\end{equation*}%
+Then, simple calculations show that
+\begin{equation*}
+\gamma |Y_{n},\Omega ^{-1},\nu ,\left\{ \lambda _{t}\right\} \sim \mathcal{N}%
+_{d+p}\left( \hat{\gamma}_{\lambda },G_{n,\lambda }\right)
+\end{equation*}%
+where
+\begin{align*}
+\hat{\gamma}_{\lambda }& =G_{n,\lambda }\left( G_{0}^{-1}\gamma
+_{0}+\sum_{t=1}^{n}\lambda _{t}X_{t}^{\prime }\Omega ^{-1}y_{t}\right)  \\
+G_{n,\lambda }& =\left( G_{0}^{-1}+\sum_{t=1}^{n}\lambda _{t}X_{t}^{\prime
+}\Omega ^{-1}X_{t}\right) ^{-1}
+\end{align*}%
+and
+\begin{equation*}
+\Omega ^{-1}|Y_{n},\gamma ,\nu ,\left\{ \lambda _{t}\right\} \sim \mathcal{W}%
+_{d}\left( \rho _{0}+n,\left( R_{0}^{-1}+\sum_{t=1}^{n}\lambda _{t}\left(
+y_{t}-X_{t}\gamma \right) \left( y_{t}-X_{t}\gamma \right) ^{\prime }\right)
+^{-1}\right)
+\end{equation*}%
+Moreover,%
+\begin{equation*}
+\Pr \left( \nu =\nu _{j}|Y_{n},\gamma ,\Omega ^{-1}\right) \propto
+q_{j}\prod\limits_{t=1}^{n}t_{d,\nu _{j}}\left( y_{t}|X_{t}\gamma ,\Omega
+\right)
+\end{equation*}%
+and%
+\begin{equation*}
+\lambda _{t}|Y_{n},\gamma ,\nu \sim G\left( \frac{\nu +d}{2},\frac{\nu
++\left( y_{t}-X_{t}\gamma \right) ^{\prime }\left( y_{t}-X_{t}\gamma \right)
+}{2}\right)
+\end{equation*}%
+One sweep of the MCMC\ sampling is completed by sampling these four
+distributions in this order.
+
+\section{Marginal Likelihood for Student-t Model}
+
+The Chib (1995) method can again be applied to find the log marginal
+likelihood as
+\begin{equation*}
+\log \Pr \left( \nu ^{\ast }\right) +\log \pi \left( \gamma ^{\ast }\right)
++\log \pi \left( \Omega ^{-1\ast }\right) +\sum_{t=1}^{n}\log t_{d,\nu
+^{\ast }}\left( y_{t}|X_{t}\gamma ^{\ast },\Omega ^{\ast }\right) -\log \pi
+\left( \nu ^{\ast },\gamma ^{\ast },\Omega ^{-1\ast }|Y_{n}\right)
+\end{equation*}%
+where $\nu ^{\ast }$ is the posterior mode (which is easily computed from
+the sampled values), the last term is calculated as%
+\begin{equation*}
+\Pr \left( \nu ^{\ast }|Y_{n}\right) \times \pi \left( \Omega ^{-1\ast
+}|Y_{n},\nu ^{\ast }\right) \times \pi \left( \gamma ^{\ast }|Y_{n},\Omega
+^{-1\ast },\nu ^{\ast }\right)
+\end{equation*}%
+in which the first term is obtained from the posterior frequency
+distribution of $\nu $, the second term is obtained from a reduced run in
+which $\nu $ is fixed at $\nu ^{\ast }$ and the remaining three
+distributions are sampled and the draws
+\begin{equation*}
+\left\{ \gamma ^{(g)},\lambda _{t}^{(g)}\right\} _{g=1}^{G}
+\end{equation*}%
+from this reduced MCMC run are used to calculate $\pi \left( \Omega ^{-1\ast
+}|Y_{n},\nu ^{\ast }\right) $ as
+\begin{equation*}
+\frac{1}{G}\sum_{g=1}^{G}\mathcal{W}_{d}\left( \Omega ^{-1\ast }|\rho
+_{0}+n,\left( R_{0}^{-1}+\sum_{t=1}^{n}\lambda _{t}^{(g)}\left(
+y_{t}-X_{t}\gamma ^{(g)}\right) \left( y_{t}-X_{t}\gamma ^{(g)}\right)
+^{\prime }\right) ^{-1}\right)
+\end{equation*}%
+and the final term $\pi \left( \gamma ^{\ast }|Y_{n},\Omega ^{-1\ast
+}\right) $ is obtained from a second reduced run in which $\nu $ is fixed at
+$\nu ^{\ast }$ and $\Omega ^{-1}$ is fixed at $\Omega ^{-1\ast }$ and the
+draws
+\begin{equation*}
+\left\{ \lambda _{t}^{(g)}\right\}
+\end{equation*}%
+from this reduced run are used to give
+\begin{equation*}
+\pi (\gamma ^{\ast }|Y_{n},\Omega ^{-1\ast },\nu ^{\ast })=\frac{1}{G}%
+\sum_{g=1}^{G}\mathcal{N}_{d+p}\left( \gamma ^{\ast }|\hat{\gamma}_{\lambda
+^{(g)}}^{\ast },G_{n,\lambda ^{(g)}}^{\ast }\right)
+\end{equation*}%
+where%
+\begin{align*}
+\hat{\gamma}_{\lambda ^{(g)}}^{\ast }& =G_{n,\lambda ^{(g)}}^{\ast }\left(
+G_{0}^{-1}\gamma _{0}+\sum_{t=1}^{n}\lambda _{t}^{(g)}X_{t}^{\prime }\Omega
+^{-1\ast }y_{t}\right)  \\
+G_{n,\lambda ^{(g)}}^{\ast }& =\left( G_{0}^{-1}+\sum_{t=1}^{n}\lambda
+_{t}^{(g)}X_{t}^{\prime }\Omega ^{-1\ast }X_{t}\right) ^{-1}
+\end{align*}
 
 \end{document}

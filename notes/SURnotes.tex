@@ -491,6 +491,29 @@ _{t}^{(g)}X_{t}^{\prime }\Omega ^{-1\ast }X_{t}\right) ^{-1}
 \end{align*}
 
 \section{Numerical Details for Student-t Model}
+
+\subsection{Parameterizing the Gamma Distribution}
+The Gamma distribution is can be parameterized in two different ways. 
+The parameterization upon which the algorithms described above are based uses $G(\alpha,\beta)$ to denote the density 
+\begin{equation*}
+  f(x|\alpha,\beta) = \frac{\beta^\alpha}{\Gamma(\alpha)}x^{\alpha-1}e^{-\beta x}
+\end{equation*}
+where $\alpha$ is the shape parameter and $\beta$ is the rate parameter.
+The base R function for drawing from this distribution is parameterized as follows:
+\begin{equation*}
+  \texttt{rgamma(n, shape, rate = 1, scale = 1/rate)}
+\end{equation*}
+so that we have a choice of specifying \emph{either} the rate parameter \emph{or} its reciprocal, which is called the \emph{scale parameter}.
+If we let $s = 1/\beta$ denote the scale parameter, an alternative parameterization of the density is given by
+\begin{equation*}
+  f(x|\alpha,s)= \frac{1}{s^{\alpha} \Gamma(\alpha)} x^{\alpha-1} e^{-x/s}
+\end{equation*}
+The C function that underlies \texttt{rgamma} (see \texttt{Rmath.h}) is parameterized according to
+\begin{equation*}
+  \texttt{double rgamma(double a, double scl)}
+\end{equation*}
+so we must specify the \emph{scale} parameter if we want to call this from C++.
+
 \subsection{Evaluating the Multivariate Student-t Density}
 As one of the steps in the calculation of the marginal likelihood we need to repeatedly evaluate the log of a multivariate Student-t density at a fixed set of parameter values.
 Let $Z$ be a $p\times n$ matrix, each of whose columns is a point $\mathbf{z}$ at which we wish to evaluate the log density.

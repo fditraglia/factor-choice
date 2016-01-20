@@ -120,9 +120,9 @@ To calculate $\mathbf{v}'\mathbf{v}$ for each column of $Z$ we simply square the
 
 \subsection{Efficient Calculation of $R_T$}
 In the second step of each iteration we compute 
-$\left( R_0^{-1} + \sum_{t=1}^{T} \hat{\boldsymbol{\varepsilon}}_t\hat{\boldsymbol{\varepsilon}}_t'\right)^{-1}$ 
+$\left( R_0^{-1} + \sum_{t=1}^{T} \boldsymbol{\varepsilon}_t \boldsymbol{\varepsilon}_t'\right)^{-1}$ 
 where 
-$\hat{\boldsymbol{\varepsilon}}_t=\mathbf{y}_t - X_t \boldsymbol{\gamma}$.
+$\boldsymbol{\varepsilon}_t=\mathbf{y}_t - X_t \boldsymbol{\gamma}$.
 Since $R_0$ is simply the prior scale matrix for $\Omega^{-1}$ and hence remains unchanged during the iterations, we can pre-compute it and store the result before starting the sampler.
 Since $X_t$ is a sparse matrix, there is a much more efficient and compact way to compute the sum of outer products of residuals.
 Define:
@@ -143,15 +143,15 @@ Define:
 \begin{array}{ccc}
   \boldsymbol{\gamma}_1 & \cdots & \boldsymbol{\gamma}_D
 \end{array}
-\right], \quad \hat{\boldsymbol{\varepsilon}} = \left[
+\right], \quad \boldsymbol{\varepsilon} = \left[
 \begin{array}{c}
-  \hat{\boldsymbol{\varepsilon}}_1' \\
+  \boldsymbol{\varepsilon}_1' \\
   \vdots \\
-  \hat{\boldsymbol{\varepsilon}}_T'
+  \boldsymbol{\varepsilon}_T'
 \end{array}
 \right]
 \end{equation*}
-so that $\hat{\boldsymbol{\varepsilon}} = \widetilde{Y} - \widetilde{X} \Gamma$.
+so that $\boldsymbol{\varepsilon} = \widetilde{Y} - \widetilde{X} \Gamma$.
 Note that the vector of regression coefficients $\boldsymbol{\gamma}$ is the vec of the \emph{matrix} of regression coefficients $\Gamma$. 
 Thus, expressed in terms of dense matrix operations
 \begin{equation*}
@@ -372,7 +372,7 @@ with the MCMC draws $\left\{ \gamma ^{(g)},\Omega ^{(g)}\right\} $ from the
 posterior distribution.
 
 
-\section{Gibbs Sample with Student-t Errors}
+\section{Gibbs Sampler with Student-t Errors}
 
 Suppose now that the errors follow a multivariate Student-t distribution rather than a normal distribution: 
 \begin{equation*}
@@ -392,8 +392,7 @@ where $G(\alpha,\beta)$ denotes the Gamma distribution with shape parameter $\al
 (See below for more discussion on the parameterization of the gamma distribution.)
 Using this representation, after conditioning on $\left( \nu, \boldsymbol{\lambda} \right)$, where $\boldsymbol{\lambda} = (\lambda_1, \dots \lambda_T)'$, we are essentially back in the familiar normal case from above.
 In any inference that we carry out, as well as in the calculation of the marginal likelihood, we will marginalize over $\boldsymbol{\lambda}$ by simply ignoring these draws.
-To begin, suppose that $\nu$ is fixed.
-Later we will consider putting a prior over $\nu$ as well.
+We will continue to place a normal prior on $\boldsymbol{\gamma}$ and a Wishart prior on $\Omega^{-1}$, exactly as we did when working with the normal likelihood above.
 
 \subsection{Fixed $\nu$}
 To begin, suppose for simplicity that the degrees of freedom parameter $\nu$ is fixed, i.e.\ specified in advance.
@@ -483,7 +482,58 @@ First let $\widetilde{Z}$ denote the result subtracting of subtracting the vecto
 To calculate $\mathbf{v}'\mathbf{v}$ for each column of $Z$ we simply square the elements of $R\widetilde{Z}$ and take the column sums of the resulting matrix.
 
 \subsection{Efficient Calculation of $R_{T,\lambda}$}
+In the normal model from above we described the efficient calculation of
+\begin{equation*}
+  R_T = \left[ R_0^{-1} + \sum_{t=1}^T \boldsymbol{\varepsilon}_t \boldsymbol{\varepsilon}_t' \right]^{-1}
+\end{equation*}
+where $\boldsymbol{\varepsilon}_t = \mathbf{y}_t - X_t \boldsymbol{\gamma}$.
+In the Student-t model we instead need to calculate
+\begin{equation*}
+  R_{T,\lambda} = \left[ R_0^{-1} + \sum_{t=1}^T \lambda_t \boldsymbol{\varepsilon}_t \boldsymbol{\varepsilon}_t' \right]^{-1}
+\end{equation*}
+which differs only in that each term of the sum is multiplied by the scalar $\lambda_t$.
+Recall that we defined
+\begin{equation*}
+  \widetilde{Y} = \left[
+  \begin{array}{c}
+    \mathbf{y}_1'\\
+    \vdots \\
+    \mathbf{y}_T'
+  \end{array}
+\right], \quad \widetilde{X} = \left[
+\begin{array}{c}
+  \mathbf{x}_{1}' \\
+  \vdots \\
+  \mathbf{x}_{T}' 
+\end{array}
+\right], \quad \Gamma = \left[
+\begin{array}{ccc}
+  \boldsymbol{\gamma}_1 & \cdots & \boldsymbol{\gamma}_D
+\end{array}
+\right], \quad \boldsymbol{\varepsilon} = \left[
+\begin{array}{c}
+  \boldsymbol{\varepsilon}_1' \\
+  \vdots \\
+  \boldsymbol{\varepsilon}_T'
+\end{array}
+\right]
+\end{equation*}
+so that $\boldsymbol{\varepsilon} = \widetilde{Y} - \widetilde{X} \Gamma$ allowing us to express the sum in the expression for $R_T$ more compactly in matrix notation as $\left( \widetilde{Y} - \widetilde{X}\Gamma \right)'\left( \widetilde{Y} - \widetilde{X}\Gamma \right)$.
+To calculate the sum in the expression for $R_{T,\lambda}$, however, we need to take into account $\lambda_t$.
+To this end, define $\boldsymbol{\lambda} = \left( \lambda_1, \dots, \lambda_T \right)'$ and $\Lambda = \mbox{diag}(\boldsymbol{\lambda})$.
+Then we see that
+\begin{equation*}
+  R_{T,\lambda} = \left[ R_0^{-1} +  \left( \widetilde{Y} - \widetilde{X}\Gamma \right)' \Lambda \left( \widetilde{Y} - \widetilde{X}\Gamma \right)\right]^{-1}
+\end{equation*}
+Everything else is the same as above, for example can pre-compute $R_{0}^{-1}$ and there is no gain from the Sherman-Morris-Woodbury formula unless $D>T$.
+
 \subsection{Efficient Calculation of $G_{T,\lambda}$}
+In the case of the normal model, described above, we used clever matrix algebra to pre-compute quantities involved in the expression\footnote{Since the MV normal sample we have implement is in terms of the precision matrix rather than covariance matrix we work with $G_T^{-1}$ rather than its inverse $G_T$.}
+\begin{equation*}
+  G_T^{-1}
+\end{equation*}
+In particular, we showed that
+
 \subsection{Efficient Calculation of $\bar{\boldsymbol{\gamma}}$}
 \subsection{Drawing $\lambda_t$}
 We want to vectorize this step.

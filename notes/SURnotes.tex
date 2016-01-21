@@ -1,6 +1,7 @@
 \documentclass[12pt]{article}
 \usepackage{enumerate, hyperref}
 \usepackage{amsmath, amssymb}
+\usepackage[margin=1.2in]{geometry}
 \linespread{1.2}
 
 
@@ -677,6 +678,62 @@ We can carry out the reduced run using the exact same algorithm as we use for th
 
 
 \paragraph{Specializing to the Student-t Model}
+For the SUR model we have
+\begin{equation*}
+  \log f(Y_T) = \log \pi(\boldsymbol{\gamma}^*) + \log \pi(\Omega^{-1*}) + \log f(Y_T|\boldsymbol{\gamma}^*, \Omega^{-1*}) - \log \pi(\boldsymbol{\gamma}^*, \Omega^{-1*}|Y_T)
+\end{equation*}
+exactly as in the case with normal errors.
+This is because we still use the \emph{same prior}, under which $\boldsymbol{\gamma}$ and $\Omega^{-1}$ are independent.
+Moreover, note that $\lambda_t$ does not make a direct appearance.
+This is because we use it only as a way of obtaining conditional conjugacy: it is not a parameter over which we place a prior.
+The first two terms of this expression give the contribution of the prior to the marginal likelihood.
+These are computed in exactly the same way as above in the normal case.
+The third term gives the contribution of the likelihood.
+In the Student-t model we have $\varepsilon_{t}|\mathbf{x}_t \sim \mbox{iid } t_{D,\nu}(0, \Omega)$ and hence, from the regression specification, it follows that $\mathbf{y}_t \sim \mbox{iid } t_{D,\nu}(X_t \boldsymbol{\gamma},\Omega)$.
+Hence, evaluating the log-likelihood at the posterior mean gives
+\begin{equation*}
+  \log f(Y_T| \boldsymbol{\gamma}^*,\Omega^{-1*}) = \sum_{t=1}^{T} \log{ t_{D,\nu} \left(\mathbf{y}_t|X_t \boldsymbol{\gamma}^*, \Omega^{-1*}\right)}
+\end{equation*}
+where we parameterize in terms of $\Omega^{-1}$ instead of $\Omega$ since this is how our C++ function for the Student-t density is specified.
+From here, the calculation is identical to the case for the normal model except with a Student-t density in place of a normal.\footnote{In particular, it's still convenient to work with the likelihood in terms of $\varepsilon_t$ rather than $\mathbf{y}_t$ and we have a way to simultaneously evaluate the likelihood contribution for each observation using our C++ routine for the Student-t density. See above for more details.}
+
+It is the \emph{final} term in the log marginal likelihood expression, the contribution of the posterior, whose computation is substantially different for the case of the Student-t model.
+We factorize the contribution of the prior according to:
+\begin{equation*}
+  \log \pi(\boldsymbol{\gamma}^*, \Omega^{-1*}|Y_T) =  \log \pi\left( \Omega^{-1*}|Y_T \right) + \log \pi\left( \boldsymbol{\gamma}^*|\Omega^{-1*},Y_T \right) 
+\end{equation*}
+To approximate the $\log \pi(\Omega^{-1*}|Y_T)$ term we evaluate the density $\pi(\Omega^{-1}|\boldsymbol{\gamma},\boldsymbol{\lambda},Y_T)$ at $\Omega^{-1*}$ and marginalize over the original Gibbs sampler draws $\left\{ \boldsymbol{\gamma}^{(g)}, \boldsymbol{\lambda}^{(g)} \right\}$, that is
+\begin{eqnarray*}
+  \widehat{\pi}\left( \Omega^{-1*}|Y_T \right) &=& \frac{1}{G}\sum_{g=1}^G \pi\left( \Omega^{-1*}|\boldsymbol{\gamma}^{(g)},\boldsymbol{\lambda}^{(g)},Y_T \right)\\
+  &=& \frac{1}{G}\sum_{g=1}^G \mathcal{W}_D\left(\Omega^{-1*}\left|\rho_0 + T, R_{T,\lambda^{(g)}}^{\left( g \right)}\right. \right) 
+\end{eqnarray*}
+where
+\begin{eqnarray*}
+  R^{(g)}_{T,\lambda^{(g)}} &=&  \left[ R_0^{-1} + \sum_{t=1}^{T} \lambda_t \left( \mathbf{y}_t - X_t \boldsymbol{\gamma}^{(g)} \right)\left( \mathbf{y}_t - X_t \boldsymbol{\gamma}^{(g)} \right)' \right]^{-1}\\
+  &=& \left[  R_0^{-1} + \left( \widetilde{Y} - \widetilde{X} \Gamma^{(g)} \right)' \Lambda^{(g)}\left( \widetilde{Y} - \widetilde{X} \Gamma^{(g)} \right)\right]^{-1}
+\end{eqnarray*}
+
+All that remains is to approximate $\pi\left( \boldsymbol{\gamma}^*|\Omega^{-1*}, Y_T \right)$.
+To do this, we will need to use a reduced run similar to the one used in the calculations for the general three-block Gibbs-sampler described above.
+We know $\pi\left( \boldsymbol{\gamma}|\Omega^{-1}, \boldsymbol{\lambda},Y_T \right)$ so we will evaluate this expression at $\boldsymbol{\gamma}^*$ and $\Omega^{-1*}$ and integrate out $\boldsymbol{\lambda}$ using a set of draws $\left\{ \boldsymbol{\lambda}^{(g)} \right\}$ that were generated holding $\Omega^{-1}$ \emph{fixed} at $\Omega^{-1*}$.
+Specifically,
+
+from this reduced run are used to give
+\begin{equation*}
+\pi (\gamma ^{\ast }|Y_{n},\Omega ^{-1\ast },\nu ^{\ast })=\frac{1}{G}%
+\sum_{g=1}^{G}\mathcal{N}_{d+p}\left( \gamma ^{\ast }|\hat{\gamma}_{\lambda
+^{(g)}}^{\ast },G_{n,\lambda ^{(g)}}^{\ast }\right)
+\end{equation*}%
+where%
+\begin{align*}
+\hat{\gamma}_{\lambda ^{(g)}}^{\ast }& =G_{n,\lambda ^{(g)}}^{\ast }\left(
+G_{0}^{-1}\gamma _{0}+\sum_{t=1}^{n}\lambda _{t}^{(g)}X_{t}^{\prime }\Omega
+^{-1\ast }y_{t}\right)  \\
+G_{n,\lambda ^{(g)}}^{\ast }& =\left( G_{0}^{-1}+\sum_{t=1}^{n}\lambda
+_{t}^{(g)}X_{t}^{\prime }\Omega ^{-1\ast }X_{t}\right) ^{-1}
+\end{align*}
+\section{OLD STUFF!}
+
 \begin{equation*}
 \log \Pr \left( \nu ^{\ast }\right) +\log \pi \left( \gamma ^{\ast }\right)
 +\log \pi \left( \Omega ^{-1\ast }\right) +\sum_{t=1}^{n}\log t_{d,\nu

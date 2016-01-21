@@ -1,7 +1,7 @@
 \documentclass[12pt]{article}
 \usepackage{enumerate, hyperref}
 \usepackage{amsmath, amssymb}
-\usepackage[margin=1.2in]{geometry}
+\usepackage[margin=1.1in]{geometry}
 \linespread{1.2}
 
 
@@ -634,10 +634,10 @@ I don't think there's any straightforward way to write this out using matrix ope
 %One sweep of the MCMC\ sampling is completed by sampling these four distributions in this order.
 
 \section{Marginal Likelihood for Student-t Model}
-Because the Gibbs sampler for the Student-t model has three blocks rather than two, we need to use a more complicated version of the Chib (1995) method to calculate the marginal likelihood for this model.
-
-\paragraph{General Three-Block Algorithm} First we describe the method for an arbitrary three-block Gibbs sampler. 
-By re-arranging Bayes' Rule we have the identity
+First we describe the method for an arbitrary three-block Gibbs sampler. 
+We will use the idea of a ``reduced run'' introduced here in our calculation of the marginal likelihood of the Student-t model.
+\paragraph{General Three-Block Algorithm} 
+Re-arranging Bayes' Rule we have the identity
 \begin{equation*}
   f(y) = \frac{f(y|\theta_1^*, \theta^*_2, \theta_3^*)\pi\left( \theta^*_1, \theta^*_2, \theta^*_3 \right)}{\pi\left( \theta_1^*, \theta_2^*, \theta_3^*|y \right)}
 \end{equation*}
@@ -677,7 +677,7 @@ In other words, the reduced run holds $\theta_1$ \emph{fixed} at $\theta^*_1$, t
 We can carry out the reduced run using the exact same algorithm as we use for the full Gibbs sampler: we just need to keep $\theta^*_1$ fixed and make sure that we store the draws $\theta_3^{(g)}$ that we will need to calculate $\hat{\pi}(\theta^*_2|\theta_1^*,y)$.
 
 
-\paragraph{Specializing to the Student-t Model}
+\paragraph{Calculations for the Student-t Model}
 For the SUR model we have
 \begin{equation*}
   \log f(Y_T) = \log \pi(\boldsymbol{\gamma}^*) + \log \pi(\Omega^{-1*}) + \log f(Y_T|\boldsymbol{\gamma}^*, \Omega^{-1*}) - \log \pi(\boldsymbol{\gamma}^*, \Omega^{-1*}|Y_T)
@@ -715,73 +715,17 @@ where
 
 All that remains is to approximate $\pi\left( \boldsymbol{\gamma}^*|\Omega^{-1*}, Y_T \right)$.
 To do this, we will need to use a reduced run similar to the one used in the calculations for the general three-block Gibbs-sampler described above.
-We know $\pi\left( \boldsymbol{\gamma}|\Omega^{-1}, \boldsymbol{\lambda},Y_T \right)$ so we will evaluate this expression at $\boldsymbol{\gamma}^*$ and $\Omega^{-1*}$ and integrate out $\boldsymbol{\lambda}$ using a set of draws $\left\{ \boldsymbol{\lambda}^{(g)} \right\}$ that were generated holding $\Omega^{-1}$ \emph{fixed} at $\Omega^{-1*}$.
-Specifically,
-
-from this reduced run are used to give
-\begin{equation*}
-\pi (\gamma ^{\ast }|Y_{n},\Omega ^{-1\ast },\nu ^{\ast })=\frac{1}{G}%
-\sum_{g=1}^{G}\mathcal{N}_{d+p}\left( \gamma ^{\ast }|\hat{\gamma}_{\lambda
-^{(g)}}^{\ast },G_{n,\lambda ^{(g)}}^{\ast }\right)
-\end{equation*}%
-where%
+We know $\pi\left( \boldsymbol{\gamma}|\Omega^{-1}, \boldsymbol{\lambda},Y_T \right)$ so we will evaluate this expression at $\boldsymbol{\gamma}^*$ and $\Omega^{-1*}$ and integrate out $\boldsymbol{\lambda}$ using a set of draws $\left\{ \boldsymbol{\lambda}^{(j)} \right\}$ that were generated holding $\Omega^{-1}$ \emph{fixed} at $\Omega^{-1*}$.
+Accordingly, we use
+\begin{eqnarray*}
+  \widehat{\pi} (\gamma^*|\Omega ^{-1*},Y_T)&=& \frac{1}{J} \sum_{j=1}^{J}\pi\left( \boldsymbol{\gamma}^{*}|\Omega^{-1*}, \boldsymbol{\lambda}^{(j)},Y_T \right)\\
+  &=& \frac{1}{J} \sum_{j=1}^{J}\mathcal{N}_{p}\left( \boldsymbol{\gamma}^*|\bar{\boldsymbol{\gamma}}_{\lambda ^{(g)}}^{\ast },G_{n,\lambda ^{(j)}}^* \right)
+\end{eqnarray*}
+where
 \begin{align*}
-\hat{\gamma}_{\lambda ^{(g)}}^{\ast }& =G_{n,\lambda ^{(g)}}^{\ast }\left(
-G_{0}^{-1}\gamma _{0}+\sum_{t=1}^{n}\lambda _{t}^{(g)}X_{t}^{\prime }\Omega
-^{-1\ast }y_{t}\right)  \\
-G_{n,\lambda ^{(g)}}^{\ast }& =\left( G_{0}^{-1}+\sum_{t=1}^{n}\lambda
-_{t}^{(g)}X_{t}^{\prime }\Omega ^{-1\ast }X_{t}\right) ^{-1}
+  \bar{\boldsymbol{\gamma}}_{\lambda^{(j)}}^* &= G_{T,\lambda^{(j)}}^*\left(
+  G_0^{-1}\boldsymbol{\gamma}_0 +\sum_{t=1}^{T}\lambda_{t}^{(j)}X_t'\Omega^{-1*}\mathbf{y}_t\right)  \\
+G_{T,\lambda ^{(j)}}^* & =\left( G_{0}^{-1}+\sum_{t=1}^{T}\lambda
+_{t}^{(j)}X_t'\Omega^{-1*}X_t\right) ^{-1}
 \end{align*}
-\section{OLD STUFF!}
-
-\begin{equation*}
-\log \Pr \left( \nu ^{\ast }\right) +\log \pi \left( \gamma ^{\ast }\right)
-+\log \pi \left( \Omega ^{-1\ast }\right) +\sum_{t=1}^{n}\log t_{d,\nu
-^{\ast }}\left( y_{t}|X_{t}\gamma ^{\ast },\Omega ^{\ast }\right) -\log \pi
-\left( \nu ^{\ast },\gamma ^{\ast },\Omega ^{-1\ast }|Y_{n}\right)
-\end{equation*}%
-where $\nu ^{\ast }$ is the posterior mode (which is easily computed from
-the sampled values), the last term is calculated as%
-\begin{equation*}
-\Pr \left( \nu ^{\ast }|Y_{n}\right) \times \pi \left( \Omega ^{-1\ast
-}|Y_{n},\nu ^{\ast }\right) \times \pi \left( \gamma ^{\ast }|Y_{n},\Omega
-^{-1\ast },\nu ^{\ast }\right)
-\end{equation*}%
-in which the first term is obtained from the posterior frequency
-distribution of $\nu $, the second term is obtained from a reduced run in
-which $\nu $ is fixed at $\nu ^{\ast }$ and the remaining three
-distributions are sampled and the draws
-\begin{equation*}
-\left\{ \gamma ^{(g)},\lambda _{t}^{(g)}\right\} _{g=1}^{G}
-\end{equation*}%
-from this reduced MCMC run are used to calculate $\pi \left( \Omega ^{-1\ast
-}|Y_{n},\nu ^{\ast }\right) $ as
-\begin{equation*}
-\frac{1}{G}\sum_{g=1}^{G}\mathcal{W}_{d}\left( \Omega ^{-1\ast }|\rho
-_{0}+n,\left( R_{0}^{-1}+\sum_{t=1}^{n}\lambda _{t}^{(g)}\left(
-y_{t}-X_{t}\gamma ^{(g)}\right) \left( y_{t}-X_{t}\gamma ^{(g)}\right)
-^{\prime }\right) ^{-1}\right)
-\end{equation*}%
-and the final term $\pi \left( \gamma ^{\ast }|Y_{n},\Omega ^{-1\ast
-}\right) $ is obtained from a second reduced run in which $\nu $ is fixed at
-$\nu ^{\ast }$ and $\Omega ^{-1}$ is fixed at $\Omega ^{-1\ast }$ and the
-draws
-\begin{equation*}
-\left\{ \lambda _{t}^{(g)}\right\}
-\end{equation*}%
-from this reduced run are used to give
-\begin{equation*}
-\pi (\gamma ^{\ast }|Y_{n},\Omega ^{-1\ast },\nu ^{\ast })=\frac{1}{G}%
-\sum_{g=1}^{G}\mathcal{N}_{d+p}\left( \gamma ^{\ast }|\hat{\gamma}_{\lambda
-^{(g)}}^{\ast },G_{n,\lambda ^{(g)}}^{\ast }\right)
-\end{equation*}%
-where%
-\begin{align*}
-\hat{\gamma}_{\lambda ^{(g)}}^{\ast }& =G_{n,\lambda ^{(g)}}^{\ast }\left(
-G_{0}^{-1}\gamma _{0}+\sum_{t=1}^{n}\lambda _{t}^{(g)}X_{t}^{\prime }\Omega
-^{-1\ast }y_{t}\right)  \\
-G_{n,\lambda ^{(g)}}^{\ast }& =\left( G_{0}^{-1}+\sum_{t=1}^{n}\lambda
-_{t}^{(g)}X_{t}^{\prime }\Omega ^{-1\ast }X_{t}\right) ^{-1}
-\end{align*}
-
 \end{document}

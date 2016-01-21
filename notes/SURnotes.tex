@@ -666,8 +666,14 @@ To begin, notice that
 \begin{equation*}
   \pi\left( \theta^*_2|\theta^*_1, y \right) = \int \pi(\theta^*_2, \theta_3|\theta_1^*,y) \; d\theta_3 = \int \pi(\theta_2^*|\theta^*_1, \theta^*_3,y)\pi(\theta_3|\theta^*_1,y) \; d\theta_3
 \end{equation*}
-The idea is to construct a Monte-Carlo approximation of the rightmost integral in the preceding expression.
-To do this, we need to employ what is called a ``reduced run.''
+The idea is to construct a Monte-Carlo approximation of the integral on the right-hand-side of the preceding expression.
+The approximation we use is
+\begin{equation*}
+  \hat{\pi}\left( \theta_2^*|\theta^*_1,y \right) = \frac{1}{G} \sum_{g = 1}^G \pi(\theta_2^*|\theta_1^*, \theta_3^{(g)},y)
+\end{equation*}
+but the draws $\left\{ \theta_3^{(g)} \right\}$ come \emph{not} from the original run of the Gibbs sampler but from a so-called ``reduced run'' in which we sample $\theta_2^{(g)}$ and $\theta_3^{(g)}$ from $\pi(\theta_2|\theta_1^*,\theta_3, y)$ and $\pi(\theta_3|\theta_1^*,\theta_2,y)$.
+In other words, the reduced run holds $\theta_1$ \emph{fixed} at $\theta^*_1$, the posterior mean calculated from the draws of the \emph{usual} Gibbs sampler.
+We can carry out the reduced run using the exact same algorithm as we use for the full Gibbs sampler: we just need to keep $\theta^*_1$ fixed and make sure that we store the draws $\theta_3^{(g)}$ that we will need to calculate $\hat{\pi}(\theta^*_2|\theta_1^*,y)$.
 
 
 \paragraph{Specializing to the Student-t Model}

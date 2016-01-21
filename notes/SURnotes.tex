@@ -563,55 +563,114 @@ Unlike the case of the normal model, we cannot pre-compute the second term in th
 We could, however, pre-compute the matrices $\mathbf{x}_t \mathbf{x}_t'$ and then take the $\lambda$-weighted sum in each step of the sampler.
 It is unclear whether this efficiency gain is worth the trouble, but we could try it if things are running too slowly.
 
-\subsection{Efficient Calculation of $\bar{\boldsymbol{\gamma}}$}
-\subsection{Drawing $\lambda_t$}
-We want to vectorize this step.
+\subsection{Efficient Calculation of $\bar{\boldsymbol{\gamma}}_{\lambda}$}
+Recall from our calculations for the normal model given above that, using the properties of the Kronecker product and the vec operator,
+\begin{equation*}
+  X_t' \Omega^{-1} \mathbf{y}_t = \mbox{vec}(\mathbf{x}_t \mathbf{y}_t' \Omega^{-1})
+\end{equation*}
+Replacing $\Omega^{-1}$ with $\lambda_t \Omega^{-1}$ and using the fact that $\lambda_t$ is a scalar, and hence commutes, along with the fact that  $\mbox{vec}(kA)=k \mbox{vec}(A)$ for any scalar $k$ and matrix $A$, it follows that
+\begin{equation*}
+  \lambda_t X_t' \Omega^{-1} \mathbf{y}_t = \mbox{vec}( \lambda_t\mathbf{x}_t \mathbf{y}_t' \Omega^{-1}) = \lambda_t\mbox{vec}(\mathbf{x}_t \mathbf{y}_t' \Omega^{-1})
+\end{equation*}
+From here it follows that
+\begin{equation*}
+  \sum_{t=1}^T  \lambda_t X_t' \Omega^{-1} \mathbf{y}_t = \sum_{t=1}^T\mbox{vec}(\lambda_t \mathbf{x}_t \mathbf{y}_t' \Omega^{-1}) =\mbox{vec}\left[ \left(\sum_{t=1}^T \lambda_t\mathbf{x}_t \mathbf{y}_t' \right)\Omega^{-1}\right] = \mbox{vec}\left( \widetilde{X}
+  ' \Lambda \widetilde{Y} \Omega^{-1}\right)
+\end{equation*}
+where $\widetilde{X}, \widetilde{Y}$ and $\Lambda$ are as defined in the subsection on efficient calculation of $R_{T,\lambda}$ from above.
+The rest of the calculation is essentially the same as that for $\bar{\boldsymbol{\gamma}}$ in the case of the normal model, described above.
 
-\section{A Prior over $\nu$}
-Following Albert and Chib (1993), let us assume that the support of $\nu $
-is the set of values $\left\{ \nu _{j}\right\} _{j=1}^{J}$, for example, $%
-\left\{ 4,6,8,10,12,14,16\right\} $ and that a priori
+
+\subsection{Drawing $\lambda_t$}
+This step in the sampler has no counterpart in the normal model:
 \begin{equation*}
-\Pr \left( \nu =\nu _{j}\right) =q_{j}
-\end{equation*}%
-Then, simple calculations show that
-\begin{equation*}
-\gamma |Y_{n},\Omega ^{-1},\nu ,\left\{ \lambda _{t}\right\} \sim \mathcal{N}%
-_{d+p}\left( \hat{\gamma}_{\lambda },G_{n,\lambda }\right)
-\end{equation*}%
-where
-\begin{align*}
-\hat{\gamma}_{\lambda }& =G_{n,\lambda }\left( G_{0}^{-1}\gamma
-_{0}+\sum_{t=1}^{n}\lambda _{t}X_{t}^{\prime }\Omega ^{-1}y_{t}\right)  \\
-G_{n,\lambda }& =\left( G_{0}^{-1}+\sum_{t=1}^{n}\lambda _{t}X_{t}^{\prime
-}\Omega ^{-1}X_{t}\right) ^{-1}
-\end{align*}%
-and
-\begin{equation*}
-\Omega ^{-1}|Y_{n},\gamma ,\nu ,\left\{ \lambda _{t}\right\} \sim \mathcal{W}%
-_{d}\left( \rho _{0}+n,\left( R_{0}^{-1}+\sum_{t=1}^{n}\lambda _{t}\left(
-y_{t}-X_{t}\gamma \right) \left( y_{t}-X_{t}\gamma \right) ^{\prime }\right)
-^{-1}\right)
-\end{equation*}%
-Moreover,%
-\begin{equation*}
-\Pr \left( \nu =\nu _{j}|Y_{n},\gamma ,\Omega ^{-1}\right) \propto
-q_{j}\prod\limits_{t=1}^{n}t_{d,\nu _{j}}\left( y_{t}|X_{t}\gamma ,\Omega
-\right)
-\end{equation*}%
-and%
-\begin{equation*}
-\lambda _{t}|Y_{n},\gamma ,\nu \sim G\left( \frac{\nu +d}{2},\frac{\nu
-+\left( y_{t}-X_{t}\gamma \right) ^{\prime }\left( y_{t}-X_{t}\gamma \right)
-}{2}\right)
-\end{equation*}%
-One sweep of the MCMC\ sampling is completed by sampling these four
-distributions in this order.
+\lambda_t|\boldsymbol{\gamma}, \nu, Y_T \sim G\left(\displaystyle \frac{\nu + D}{2}, \frac{\nu + \boldsymbol{\varepsilon}_t' \boldsymbol{\varepsilon}_t}{2} \right)
+\end{equation*}
+where $\boldsymbol{\varepsilon}_t = \mathbf{y}_t - X_t \boldsymbol{\gamma}$.
+Notice that we have one auxiliary parameter, $\lambda_t$, per observation.
+Each of these comes from a \emph{different} Gamma distribution: while the shape parameter is common, the rate parameter differs according to the residual $\boldsymbol{\varepsilon}$ associated with each observation.
+Because we have a C++ function for drawing gamma variates that is vectorized with respect to its second argument, the rate parameter, we need an expression for the while \emph{vector} of rate parameters.
+I don't think there's any straightforward way to write this out using matrix operations, so we'll just have to use a loop to construct the desired vector.
+
+%\section{A Prior over $\nu$}
+%Following Albert and Chib (1993), let us assume that the support of $\nu $
+%is the set of values $\left\{ \nu _{j}\right\} _{j=1}^{J}$, for example, $%
+%\left\{ 4,6,8,10,12,14,16\right\} $ and that a priori
+%\begin{equation*}
+%\Pr \left( \nu =\nu _{j}\right) =q_{j}
+%\end{equation*}%
+%Then, simple calculations show that
+%\begin{equation*}
+%\gamma |Y_{n},\Omega ^{-1},\nu ,\left\{ \lambda _{t}\right\} \sim \mathcal{N}%
+%_{d+p}\left( \hat{\gamma}_{\lambda },G_{n,\lambda }\right)
+%\end{equation*}%
+%where
+%\begin{align*}
+%\hat{\gamma}_{\lambda }& =G_{n,\lambda }\left( G_{0}^{-1}\gamma
+%_{0}+\sum_{t=1}^{n}\lambda _{t}X_{t}^{\prime }\Omega ^{-1}y_{t}\right)  \\
+%G_{n,\lambda }& =\left( G_{0}^{-1}+\sum_{t=1}^{n}\lambda _{t}X_{t}^{\prime
+%}\Omega ^{-1}X_{t}\right) ^{-1}
+%\end{align*}%
+%and
+%\begin{equation*}
+%\Omega ^{-1}|Y_{n},\gamma ,\nu ,\left\{ \lambda _{t}\right\} \sim \mathcal{W}%
+%_{d}\left( \rho _{0}+n,\left( R_{0}^{-1}+\sum_{t=1}^{n}\lambda _{t}\left(
+%y_{t}-X_{t}\gamma \right) \left( y_{t}-X_{t}\gamma \right) ^{\prime }\right)
+%^{-1}\right)
+%\end{equation*}%
+%Moreover,%
+%\begin{equation*}
+%\Pr \left( \nu =\nu _{j}|Y_{n},\gamma ,\Omega ^{-1}\right) \propto
+%q_{j}\prod\limits_{t=1}^{n}t_{d,\nu _{j}}\left( y_{t}|X_{t}\gamma ,\Omega
+%\right)
+%\end{equation*}%
+%and%
+%\begin{equation*}
+%\lambda _{t}|Y_{n},\gamma ,\nu \sim G\left( \frac{\nu +d}{2},\frac{\nu
+%+\left( y_{t}-X_{t}\gamma \right) ^{\prime }\left( y_{t}-X_{t}\gamma \right)
+%}{2}\right)
+%\end{equation*}%
+%One sweep of the MCMC\ sampling is completed by sampling these four distributions in this order.
 
 \section{Marginal Likelihood for Student-t Model}
+Because the Gibbs sampler for the Student-t model has three blocks rather than two, we need to use a more complicated version of the Chib (1995) method to calculate the marginal likelihood for this model.
 
-The Chib (1995) method can again be applied to find the log marginal
-likelihood as
+\paragraph{General Three-Block Algorithm} First we describe the method for an arbitrary three-block Gibbs sampler. 
+By re-arranging Bayes' Rule we have the identity
+\begin{equation*}
+  f(y) = \frac{f(y|\theta_1^*, \theta^*_2, \theta_3^*)\pi\left( \theta^*_1, \theta^*_2, \theta^*_3 \right)}{\pi\left( \theta_1^*, \theta_2^*, \theta_3^*|y \right)}
+\end{equation*}
+for any specified values $(\theta_1^*, \theta_2^*, \theta_3^*)$ of the parameters.
+In particular this holds at the \emph{posterior mean} which is where we will evaluate the expression.
+Hence, the \emph{log} marginal likelihood is given by
+\begin{equation*}
+  \log{f(y)} =  \log \pi\left( \theta^*_1, \theta^*_2, \theta^*_3 \right) + \log{f(y|\theta^*_1, \theta^*_2, \theta^*_3}) - \pi\left( \theta^*_1, \theta^*_2, \theta^*_3|y \right)
+\end{equation*}
+The first two terms are easy: we simply evaluate the log of the prior and likelihood at the posterior mean for the three parameters.
+The third one, however, is more complicated.
+To calculate it we use the factorization:
+\begin{equation*}
+\pi\left( \theta^*_1, \theta^*_2, \theta^*_3|y \right) = \pi(\theta^*_1|y) \pi\left( \theta^*_2|\theta^*_1,y \right)\pi\left( \theta^*_3|\theta^*_2, \theta^*_1,y \right)
+\end{equation*}
+This leaves us with three a product of new terms that we need to calculate.
+The last of the terms in the product, $\pi(\theta^*_3|\theta^*_2, \theta^*_1, y)$ is immediately available: this conditional density is known since we used it as a step in the Gibbs sampler.
+All we need to do is substitute in the appropriate values for $\theta^*_2,\theta^*_1$ and evaluate the density at $\theta^*_3$.
+To calculate the first term in the product we need to marginalize over $\theta_2, \theta_3$.
+A Monte-Carlo approximation to the appropriate integral can be computed directly from the Gibbs sampler output:
+\begin{equation*}
+  \widehat{\pi}\left( \theta^*_1|y \right) = \frac{1}{G}\sum_{g=1}^{G} \pi\left( \theta^*_1|\theta_2^{(g)}, \theta_3^{(g)}, y \right)
+\end{equation*}
+To do this we rely on the fact that $\pi(\theta_1|\theta_2, \theta_3, y)$ is a known density -- we use it in the Gibbs sampler.
+The middle term in the product is the most difficult one to calculate.
+To begin, notice that
+\begin{equation*}
+  \pi\left( \theta^*_2|\theta^*_1, y \right) = \int \pi(\theta^*_2, \theta_3|\theta_1^*,y) \; d\theta_3 = \int \pi(\theta_2^*|\theta^*_1, \theta^*_3,y)\pi(\theta_3|\theta^*_1,y) \; d\theta_3
+\end{equation*}
+The idea is to construct a Monte-Carlo approximation of the rightmost integral in the preceding expression.
+To do this, we need to employ what is called a ``reduced run.''
+
+
+\paragraph{Specializing to the Student-t Model}
 \begin{equation*}
 \log \Pr \left( \nu ^{\ast }\right) +\log \pi \left( \gamma ^{\ast }\right)
 +\log \pi \left( \Omega ^{-1\ast }\right) +\sum_{t=1}^{n}\log t_{d,\nu

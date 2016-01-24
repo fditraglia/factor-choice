@@ -698,7 +698,7 @@ where we parameterize in terms of $\Omega^{-1}$ instead of $\Omega$ since this i
 From here, the calculation is identical to the case for the normal model except with a Student-t density in place of a normal.\footnote{In particular, it's still convenient to work with the likelihood in terms of $\varepsilon_t$ rather than $\mathbf{y}_t$ and we have a way to simultaneously evaluate the likelihood contribution for each observation using our C++ routine for the Student-t density. See above for more details.}
 
 It is the \emph{final} term in the log marginal likelihood expression, the contribution of the posterior, whose computation is substantially different for the case of the Student-t model.
-We factorize the contribution of the prior according to:
+We factorize the contribution of the posterio according to:
 \begin{equation*}
   \log \pi(\boldsymbol{\gamma}^*, \Omega^{-1*}|Y_T) =  \log \pi\left( \Omega^{-1*}|Y_T \right) + \log \pi\left( \boldsymbol{\gamma}^*|\Omega^{-1*},Y_T \right) 
 \end{equation*}

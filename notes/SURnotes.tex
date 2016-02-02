@@ -413,7 +413,7 @@ $\Omega^{-1}|Y_T \sim \mathcal{W}_D\left(\rho_0 + T, R_{T,\lambda}\right)$
   R_{T,\lambda} = \left[ R_0^{-1} + \sum_{t=1}^{T} \lambda_t\left( \mathbf{y}_t - X_t \boldsymbol{\gamma} \right)\left( \mathbf{y}_t - X_t \boldsymbol{\gamma} \right)' \right]^{-1}
 \end{equation*}
 
-\paragraph{Auxiliary Parameter:} $\lambda_t|\boldsymbol{\gamma}, \nu, Y_T \sim G\left(\displaystyle \frac{\nu + D}{2}, \frac{\nu + \boldsymbol{\varepsilon}_t' \boldsymbol{\varepsilon}_t}{2} \right)$, $\boldsymbol{\varepsilon}_t = \mathbf{y}_t - X_t \boldsymbol{\gamma}$
+\paragraph{Auxiliary Parameter:} $\lambda_t|\boldsymbol{\gamma}, \nu, Y_T \sim G\left(\displaystyle \frac{\nu + D}{2}, \frac{\nu + \boldsymbol{\varepsilon}_t'\Omega^{-1} \boldsymbol{\varepsilon}_t}{2} \right)$, $\boldsymbol{\varepsilon}_t = \mathbf{y}_t - X_t \boldsymbol{\gamma}$
 
 To implement the Gibbs sampler, we simply need to draw sequentially from these distributions, in the order given above. 
 We will require, however, starting values for both $\Omega^{-1}$ and each of the $\lambda_t$ parameters. 
@@ -585,7 +585,7 @@ The rest of the calculation is essentially the same as that for $\bar{\boldsymbo
 \subsection{Drawing $\lambda_t$}
 This step in the sampler has no counterpart in the normal model:
 \begin{equation*}
-\lambda_t|\boldsymbol{\gamma}, \nu, Y_T \sim G\left(\displaystyle \frac{\nu + D}{2}, \frac{\nu + \boldsymbol{\varepsilon}_t' \boldsymbol{\varepsilon}_t}{2} \right)
+\lambda_t|\boldsymbol{\gamma}, \nu, Y_T \sim G\left(\displaystyle \frac{\nu + D}{2}, \frac{\nu + \boldsymbol{\varepsilon}_t' \Omega^{-1}\boldsymbol{\varepsilon}_t}{2} \right)
 \end{equation*}
 where $\boldsymbol{\varepsilon}_t = \mathbf{y}_t - X_t \boldsymbol{\gamma}$.
 Notice that we have one auxiliary parameter, $\lambda_t$, per observation.

@@ -30,11 +30,10 @@ The simulation setup is described below:
 		\mathbf{y}_t^s = X_t \boldsymbol{\gamma} + \boldsymbol{\varepsilon}^s_t
 		\end{equation*}
 	\end{itemize}
-	\item Estimate all candidate models and evaluate the likelihood. Run the usual two step estimation procedure using the training sample to construct priors for each model.  
+	\item Estimate all candidate models and evaluate the likelihood. Run the usual two step estimation procedure using the training sample to construct priors for each model.
 \end{enumerate}
 
-\begin{table}[ht]
-	\footnotesize
+\begin{sidewaystable}[ht]
 	\centering
 	\begin{tabular}{rrrrrrrrrrrr}
 		\hline
@@ -50,10 +49,10 @@ The simulation setup is described below:
 		\hline
 	\end{tabular}
 	\caption{Average Portfolio Returns for Simulated and Real Data}
-\end{table}
+\end{sidewaystable}
+
 \begin{table}[ht]
 	\centering
-	\footnotesize
 	\begin{tabular}{rrrrrrr}
 		\hline
 		& Mkt.RF & SMB & HML & RMW & CMA & MSFT \\ 
@@ -68,7 +67,6 @@ The simulation setup is described below:
 \begin{table}[ht]
 	
 	\centering
-	\footnotesize
 	\begin{tabular}{ccc}
 		\hline
 		Model & DF & log margLike \\ 

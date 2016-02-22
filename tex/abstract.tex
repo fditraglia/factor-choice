@@ -1,5 +1,16 @@
 %!TEX root = ../main.tex
-In this paper we revisit one of the classic questions in empirical finance: which factors in combination are useful for explaining the time-series and cross-section behavior of equity and portfolio returns? 
+In this paper we use Bayesian methods to revisit a classic question in empirical finance: which asset pricing factors in combination explain the time-series and cross-section behavior of equity and portfolio returns? 
+Answering this question is challenging because it requires the consideration of a large number of models formed from all possible subsets of the factors under consideration: a factor may appear important when viewed in isolation yet provide no additional explanatory power when combined with some other combination of factors. 
+
+
+Use Bayesian SUR model to address challenging high-dimensional model selection problem.
+Automatically penalize 
+Objective prior based on training sample.
+Choose factors and distribution of returns jointly: consider normal and student-t with various degrees of freedom.
+Twelve leading factors and 
+
+We examine a collection of twelve leading asset pricing factors leading set of twelve factors
+
 The contribution of this paper is to consider this question from a Bayesian perspective recognizing that proper evaluation of the worth of a factor has to be in the context of models with and without other factors. 
 Answering such a question therefore requires the consideration of all possible subset models, where the subset models are essentially special cases of a seemingly unrelated regression (SUR) model with the same subset of factors on the right-hand side but with different asset-specific factor coefficients, and a jointly distributed vector error with an unknown precision (inverse covariance) matrix. 
 In the case of a leading set of 12 factors, along with the intercept which can be present or absent in each possible case, this leads to $2^{13}$ possible SUR models, which along with 6 different assumptions about the error distribution, amounts to the comparison of 49152 SUR models. 

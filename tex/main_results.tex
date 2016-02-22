@@ -1,0 +1,103 @@
+%!TEX root = ../main.tex
+\section{Application}
+\subsection{Data}
+We apply our method to 10 value-weighted industry portfolios available at the Kenneth French's website: Consumer NonDurables(NoDur), Consumer Durables(Dur), Manufacturing(Manuf),  Oil, Gas, and Coal Extraction and Products(Enrgy), Business Equipment(HiTec),   Telephone and Television Transmission(Telcm),   Wholesale, Retail, and Some Services (Shops),
+Healthcare, Medical Equipment, and Drugs(Hlth),
+Utilities(Utils), Other(Other). \\
+The 12 candidate factors include (aside from the constant)\footnote{We thank Lu Zhang for providing us the factors constructed in \cite{hou2014digesting}. Other factors are obtained from authors' web-pages.}:
+\begin{itemize}
+	\item five factors by \cite{fama1993common} and \cite{fama2015five}: market(Mkt.RF), size(SMB), value(HML), profitability(RMW) and investment(CMA)
+	\item three factors proposed by \cite{hou2014digesting}: size(ME), profitability(ROE) and investment(IA)
+	\item momentum factor(MOM) as in \cite{carhart1997persistence}
+	\item liquidity(LIQv) introduced in \cite{stambaugh2003liquidity}
+	\item quality factor(QMJ) as offered by \cite{asness2014quality}
+	\item alternative value factor(HMLDev) constructed by \cite{asness2013devil}
+\end{itemize}
+
+The full sample ranges from Jan 1968 - Dec 2014 (564 observations). The training sample is Jan 1968 - Dec 1979(144 observation). \\
+We report the summary statistics in the tables below. As can be seen from the correlation matrix, many factors co-move together. This is the reason why the question of joint rather than individual significance is especially relevant for this set up. Our method is capable of addressing this issue because our selection of models is based on comparing all possible combinations of factors.
+\begin{table}[ht]
+	\footnotesize
+	\centering
+	\begin{tabular}{rrrrrrrrrrr}
+		\hline
+		& NoDur & Durbl & Manuf & Enrgy & HiTec & Telcm & Shops & Hlth & Utils & Other \\ 
+		\hline
+		Jan 1968 - Dec 2014 & 0.0068 & 0.0046 & 0.0055 & 0.0064 & 0.0048 & 0.0054 & 0.0063 & 0.0066 & 0.0049 & 0.0050 \\ 
+		Jan 1968 - Dec 1979 & 0.0006 & -0.0009 & -0.0003 & 0.0048 & -0.0012 & 0.0013 & 0.0004 & 0.0013 & 0.0003 & 0.0005 \\ 
+			Jan 1980 - Dec 2014 & 0.0090 & 0.0064 & 0.0075 & 0.0070 & 0.0069 & 0.0068 & 0.0084 & 0.0084 & 0.0065 & 0.0065 \\ 
+		\hline
+	\end{tabular}
+		\caption{Average Portfolio Returns}
+\end{table}
+\begin{table}[ht]
+	\scriptsize
+	\centering
+	\begin{tabular}{rrrrrrrrrrrrr}
+		\hline
+		& LIQv & MOM & Mkt.RF & SMB & HML & RMW & CMA & QMJ & ME & IA & ROE & HMLDev \\ 
+		\hline
+		 Jan 1968 - Dec 2014 & 0.0043 & 0.0066 & 0.0049 & 0.0020 & 0.0038 & 0.0026 & 0.0037 & 0.0039 & 0.0028 & 0.0046 & 0.0055 & 0.0039 \\ 
+		Jan 1968 - Dec 1979 & 0.0014 & 0.0080 & 0.0003 & 0.0039 & 0.0059 & -0.0004 & 0.0049 & 0.0018 & 0.0049 & 0.0061 & 0.0043 & 0.0073 \\ 
+		Jan 1980 - Dec 2014 & 0.0053 & 0.0061 & 0.0065 & 0.0014 & 0.0030 & 0.0037 & 0.0033 & 0.0046 & 0.0020 & 0.0040 & 0.0059 & 0.0028 \\ 
+		\hline
+	\end{tabular}
+	\caption{Average Factor Returns}
+\end{table}
+\begin{table}[ht]
+	\scriptsize
+	\centering
+	\begin{tabular}{rrrrrrrrrrrrr}
+		\hline
+		& LIQv & MOM & Mkt.RF & SMB & HML & RMW & CMA & QMJ & ME & IA & ROE & HMLDev \\ 
+		\hline
+		LIQv & 1.00 & -0.02 & -0.06 & -0.03 & 0.03 & 0.03 & 0.02 & 0.04 & -0.04 & 0.02 & -0.06 & 0.07 \\ 
+		MOM & -0.02 & 1.00 & -0.13 & -0.05 & -0.15 & 0.10 & 0.02 & 0.25 & -0.02 & 0.04 &\textbf{ 0.50} & \textbf{-0.64} \\ 
+		Mkt.RF & -0.06 & -0.13 & 1.00 & 0.28 & -0.32 & -0.21 & -0.40 & \textbf{-0.53} & 0.26 & -0.39 & -0.20 & -0.13 \\ 
+		SMB & -0.03 & -0.05 & 0.28 & 1.00 & -0.13 & -0.38 & -0.09 & \textbf{-0.52} & \textbf{0.97} & -0.19 & -0.39 & -0.02 \\ 
+		HML & 0.03 & -0.15 & -0.32 & -0.13 & 1.00 & 0.11 & \textbf{0.71} & 0.02 & -0.08 & \textbf{0.69} & -0.10 & \textbf{0.77 }\\ 
+		RMW & 0.03 & 0.10 & -0.21 & -0.38 & 0.11 & 1.00 & -0.06 & \textbf{0.76} & -0.37 & 0.06 & \textbf{0.68} & -0.07 \\ 
+		CMA & 0.02 & 0.02 & -0.40 & -0.09 & \textbf{0.71} & -0.06 & 1.00 & 0.08 & -0.05 & \textbf{0.91} & -0.08 & \textbf{0.51} \\ 
+		QMJ & 0.04 & 0.25 & \textbf{-0.53} & \textbf{-0.52} & 0.02 & \textbf{0.76} & 0.08 & 1.00 & \textbf{-0.50} & 0.15 & \textbf{0.69} & -0.21 \\ 
+		ME & -0.04 & -0.02 & 0.26 & \textbf{0.97} & -0.08 & -0.37 & -0.05 & \textbf{-0.50} & 1.00 & -0.15 & -0.32 & -0.01 \\ 
+		IA & 0.02 & 0.04 & -0.39 & -0.19 & \textbf{0.69} & 0.06 &\textbf{ 0.91} & 0.15 & -0.15 & 1.00 & 0.05 & 0.49 \\ 
+		ROE & -0.06 & \textbf{0.50} & -0.20 & -0.39 & -0.10 & \textbf{0.68} & -0.08 & \textbf{0.69} & -0.32 & 0.05 & 1.00 & -0.45 \\ 
+		HMLDev & 0.07 & \textbf{-0.64} & -0.13 & -0.02 & \textbf{0.77} & -0.07 & \textbf{0.51} & -0.21 & -0.01 & 0.49 & -0.45 & 1.00 \\ 
+		\hline
+	\end{tabular}
+	\caption{Factors Correlation Matrix (based on full sample)}
+\end{table}
+\begin{table}[ht]
+	\footnotesize
+	\centering
+	\begin{tabular}{ccc}
+		\hline
+		Model & DF & log margLike \\ 
+		\hline
+		MOM + Mkt.RF + HML + RMW + CMA + QMJ + ME + ROE + HMLDev & 6 & 9713.58 \\ 
+		MOM + Mkt.RF + SMB + HML + RMW + CMA + QMJ + ME + HMLDev & 6 & 9713.53 \\ 
+		MOM + Mkt.RF + HML + RMW + CMA + QMJ + ME + ROE & 6 & 9713.47 \\ 
+		MOM + Mkt.RF + HML + RMW + CMA + QMJ + ME + ROE + HMLDev & 8 & 9713.33 \\ 
+		MOM + Mkt.RF + HML + RMW + CMA + QMJ + ME + ROE & 8 & 9712.67 \\ 
+		MOM + Mkt.RF + SMB + HML + RMW + CMA + QMJ + ME + HMLDev & 8 & 9712.61 \\ 
+		MOM + Mkt.RF + SMB + HML + RMW + CMA + QMJ + ME & 6 & 9712.45 \\ 
+		MOM + Mkt.RF + SMB + HML + RMW + CMA + QMJ + ROE + HMLDev & 6 & 9712.26 \\ 
+		MOM + Mkt.RF + SMB + HML + RMW + CMA + QMJ + ROE & 6 & 9712.21 \\ 
+		MOM + Mkt.RF + SMB + HML + RMW + CMA + QMJ + ROE & 8 & 9711.74 \\ 
+		MOM + Mkt.RF + SMB + HML + RMW + CMA + QMJ + ROE + HMLDev & 8 & 9711.72 \\ 
+		constant + MOM + Mkt.RF + HML + RMW + CMA + QMJ + ME + ROE + HMLDev & 6 & 9711.61 \\ 
+		constant + MOM + Mkt.RF + HML + RMW + CMA + QMJ + ME + ROE + HMLDev & 8 & 9711.59 \\ 
+		MOM + Mkt.RF + SMB + HML + RMW + CMA + QMJ + ME & 8 & 9711.46 \\ 
+		MOM + Mkt.RF + SMB + HML + RMW + CMA + QMJ + ME + IA + HMLDev & 6 & 9711.1 \\ 
+		MOM + Mkt.RF + HML + RMW + CMA + QMJ + ME + IA + HMLDev & 6 & 9710.89 \\ 
+		MOM + Mkt.RF + HML + RMW + CMA + QMJ + ME + HMLDev & 6 & 9710.62 \\ 
+		constant + MOM + Mkt.RF + SMB + HML + RMW + CMA + QMJ + ROE + HMLDev & 6 & 9710.29 \\ 
+		MOM + Mkt.RF + SMB + HML + RMW + CMA + QMJ + ME + IA + HMLDev & 8 & 9710.2 \\ 
+		MOM + Mkt.RF + SMB + HML + RMW + CMA + QMJ + ME + IA & 6 & 9710.11 \\ 
+		\hline
+	\end{tabular}
+		\caption{20 Best Models}
+\end{table}
+\subsection{Results}
+In total we explore $2^{13}$ models and consider 6 possible distribution of errors: Student-t with 4, 6, 8, 10 and 12 degrees of freedom and normal. 
+

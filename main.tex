@@ -1,0 +1,38 @@
+\documentclass[12pt]{article}
+\usepackage{frankstyle}
+
+
+\begin{document}
+
+\title{Title Goes Here}
+
+\author{Siddhartha Chib\footnote{Address} \\ 
+Francis J.\ DiTraglia\footnote{Address} \\
+Irina Pimenova\footnote{Address}}
+\date{\small This Version: \today\footnote{First Version: February 22, 2015}}
+\maketitle 
+\begin{abstract}
+  \singlespacing
+	\input{abstract.tex}
+
+  	\bigskip
+	\noindent\textbf{Keywords:} Asset Pricing, Factor Models, Bayesian Model Selection\\
+	\medskip
+  \noindent\textbf{JEL Codes:} C11, C52, G00, G12 
+\end{abstract}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%
+%Body of the paper
+\input{introduction.tex}
+\input{model.tex}
+\input{simulation_example.tex}
+\input{main_results.tex}
+\input{conclusion.tex}
+%References
+\bibliographystyle{elsarticle-harv}
+\bibliography{factor_choice}
+
+%\appendix
+%\input{proofs.tex}
+
+\end{document}

@@ -1,29 +1,45 @@
 %!TEX root = ../main.tex
 \section{Introduction}
-An abiding, key question in empirical finance is the following: which factors are useful for explaining the time series and cross-section behavior of equity and portfolio returns? There is by now a vast literature on this topic concerned with the development of possible factors and the empirical evaluation of those factors. 
-Along with the original market factor introduced in \cite{sharpe1964capital} and \cite{lintner1965valuation}, an array of new factors have emerged as documented in \cite{harvey2015and}. 
+An abiding question in empirical finance is the following: which factors are useful for explaining the time series and cross-section behavior of equity and portfolio returns? 
+There is by now a vast literature on this topic concerned with the development of possible factors and the empirical evaluation of those factors. 
+Along with the original market factor introduced in \cite{sharpe1964capital} and \cite{lintner1965valuation}, an array of new factors has emerged as documented in \cite{harvey2015and}. 
 Determining the empirical relevance of these factors is an ongoing statistical challenge and different avenues continue to be energetically explored. 
-For instance, \cite{hou2014comparison} compare the \cite{hou2014digesting} and   \cite{fama2015five} five-factor models based on the conceptual understanding of factors and the ability of the factors to explain asset-pricing anomalies.  
-A more statistical evaluation is provided by \cite{harvey2015lucky} who start with a collection of 12 leading factors and use a bootstrap procedure to forward select relevant factors. 
-Stepwise selection, however, does not necessarily asymptotically produce the best model. 
-This is particularly true in the presence of redundant factors (see \cite{judd2011data}). 
+For instance, \cite{hou2014comparison} compare the \cite{hou2014digesting} and \cite{fama2015five} five-factor models based on the conceptual meaning of the factors and their ability to explain asset-pricing anomalies.
+A more statistical evaluation is provided by \cite{harvey2015lucky} who start with a collection of 12 leading factors and use a bootstrap procedure to forward-select relevant factors. 
 
-Our goal in this paper is to offer a quite different method for finding the best collection of factors. 
-Our starting point is the recognition that the proper evaluation of the worth of a factor has to be in the context of models with and without other factors. 
-Thus, basing a decision of the importance of a factor based solely on the t-statistic, or related statistics, ignores the question of joint significance and correlation between factors. 
-Instead, answering the relevance question requires the consideration of all possible subset models, where the subset models are essentially special cases of a seemingly unrelated regression (SUR) model with the same subset of factors on the right-hand side but with different asset-specific factor coefficients, and a jointly distributed vector error with an unknown precision matrix. Restricting ourselves to 12 factors (10 from \cite{harvey2015lucky} and 2 additional ones), 
+We propose a different method for finding the best collection of factors based on two important observations.
+First, factors should be considered \emph{jointly} in all possible combinations. 
+If $D$ is the number of factors under consideration, this requires the consideration of $2^{D+1}$ models, allowing for the possibility of a non-zero intercept.
+Stepwise selection, whether based on a t-statistic or related statistics, ignores the question of joint significance and the potentially high correlation between factors.
+As such it can perform poorly in practice and does not necessarily select the best model in the limit: it is not asymptotically consistent.\footnote{See, for example \cite{judd2011data}.}
+Second, with so many models under consideration, there is a serious danger of over-fitting.
+Indeed, as suggested by \cite{harvey2015and}, many of the novel factors identified in recent years may well be spurious.
+To avoid this problem, any proposed selection procedure should account for the high-dimensional nature of factor selection problem by appropriately penalizing more complex models relative to simpler ones.
+
+In this paper we take both of these observations to heart and use monthly observations for twelve leading asset pricing factors and ten industry portfolios to carry out an exhaustive search over 49,152 asset pricing specifications based on a seemingly unrelated regression (SUR) model with Student-t errors.
+Ten of the factors used in our exercise are used by \cite{harvey2015lucky} while two others are drawn from different sources.
+Our model comparisons are based on the calculation of Bayesian marginal likelihoods, using the method of \cite{chib1995marginal}.
+Marginal likelihoods automatically penalize models based on complexity, assuring that models with more factors will not rank higher merely because their greater flexibility allows them to fit the noise in the data. 
+Moreover, model selection based on the comparison of marginal likelihoods has attractive asymptotic properties.
+If the true model is among the candidates under consideration, marginal likelihood comparisons will select it with probability approaching one in the limit; if it is not among the candidates, they will select the model that is closest to the truth.
+As we show in a calibrated simulation example, marginal likelihood comparisons also perform well in finite samples.
+The flexibility of marginal likelihoods as a tool for model comparison allows us to to simultaneously select over asset pricing factors and features of the error distribution.
+Thus we allow the data to dictate the heaviness of the tails of the return distribution, considering multivariate Student-t distributions with 4, 6, 8, 10, and 12 degrees of freedom in addition to Gaussian errors. 
+Marginal likelihood comparisons also allow us to ``test'' the factor pricing models under consideration.
+Because all of our candidate factors are returns, factor pricing theory implies that the intercept should be zero for all test portfolios. 
+By comparing identical specifications with and without an intercept, we can determine whether the data supports this prediction of theory.
+Unlike the p-value from a frequentist hypothesis test, which is a probability calculated \emph{under} the assumption that the theory is correct, our Bayesian approach can be used to determine how much more probable it is \emph{that} the theory is correct than that it is not.
+
+Marginal likelihood comparisons require the specification of proper priors.
+Given the large number of parameters in our SUR model
+
+the subset models are essentially special cases of a seemingly unrelated regression (SUR) model with the same subset of factors on the right-hand side but with different asset-specific factor coefficients, and a jointly distributed vector error with an unknown precision matrix. Restricting ourselves to 12 factors (10 from \cite{harvey2015lucky} and 2 additional ones), 
   and an intercept which can be present or absent in each possible case, leads to $2^{13}$ possible SUR models, which along with 6 different assumptions about the error distribution, amounts to the comparison of 49152 SUR models.
   
 Our next innovation is to utilize a carefully crafted Bayesian approach to implement the comparison of these disparate models. Careful in this context means that the prior distribution is not placed independently on each factor, since we recognize that the meaning and importance of the factor coefficients and the error precision matrix vary by model. 
 Each of the required 49152 different prior distributions are specified in an automatic and importantly, objective fashion, by employing a small training sample that precedes our estimation sample. 
 Careful also refers to the use of a SUR type model in which error distribution and error precision are also viewed as unknowns that have to be inferred.
 
-Decisions about the best model are then taken by the comparison of Bayesian marginal likelihoods, computed readily by the method of \cite{chib1995marginal}, for each of these models. 
-This comparison of our models by Bayesian marginal likelihoods has well-recognized theoretical properties (in a small simulation exercise we also document the excellent performance of the marginal likelihood criterion in picking the true model). 
-In particular, marginal likelihoods include a penalty for complexity. 
-In other words, models with more factors do not necessarily gather greater support. 
-In addition, models picked according to the marginal likelihoods, asymptotically pick either the true model, if it is in the class being considered, or find the model that is closet to the true model, if it is not in the class being considered. 
-Our marginal likelihood based model exploration, therefore, provides an effective, previously unexplored avenue for evaluating the joint rather than individual importance of factors.
 
 
 Our paper adds to the growing literature on the use of Bayesian techniques in finance.
@@ -37,5 +53,5 @@ Section 1 describes the model with Student-t errors and the estimation framework
 Section 2 provides a simulation example to motivate our research.
 Section 4 describes the main results. 
 Finally, section 5 concludes. 
-Results for the model with normal errors and general description of the three block sample can be found in the Appendix.
+%Results for the model with normal errors and general description of the three block sampler can be found in the Appendix.
 

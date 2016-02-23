@@ -1,20 +1,10 @@
 %!TEX root = ../main.tex
-In this paper we use Bayesian methods to revisit a classic question in empirical finance: which asset pricing factors in combination explain the time-series and cross-section behavior of equity and portfolio returns? 
-Answering this question is challenging because it requires the consideration of a large number of models formed from all possible subsets of the factors under consideration: a factor may appear important when viewed in isolation yet provide no additional explanatory power when combined with some other combination of factors. 
+In this paper we use Bayesian methods to revisit a classic question in empirical finance: which asset pricing factors explain the time-series and cross-section behavior of asset returns? 
+To answer this question one must consider an extremely large collection of models formed from all possible subsets of the proposed factors.
+And with so many models under consideration, there is a serious risk of overfitting.
+We address this challenging high-dimensional model selection problem by calculating and comparing marginal likelihoods in a Bayesian seemingly unrelated regression (SUR) model with multivariate Student-t errors and an objective, training-sample prior.
+Unlike approaches based on hypothesis testing, marginal likelihood comparisons automatically penalize models based on complexity, avoiding the problem of over-fitting. 
+Our proposed method performs well in a calibrated simulation, selecting the correct model even when we intentionally mis-specify the error distribution.
+We then consider an application using monthly returns for ten industry portfolios and twelve leading asset pricing factors.
+Our exhaustive search over 49,152 models, $2^{13}$ for each of six error specification suggests that, in addition to the usual suspects, profitability and quality are important for explaining the behavior of returns.
 
-
-Use Bayesian SUR model to address challenging high-dimensional model selection problem.
-Automatically penalize 
-Objective prior based on training sample.
-Choose factors and distribution of returns jointly: consider normal and student-t with various degrees of freedom.
-Twelve leading factors and 
-
-We examine a collection of twelve leading asset pricing factors leading set of twelve factors
-
-The contribution of this paper is to consider this question from a Bayesian perspective recognizing that proper evaluation of the worth of a factor has to be in the context of models with and without other factors. 
-Answering such a question therefore requires the consideration of all possible subset models, where the subset models are essentially special cases of a seemingly unrelated regression (SUR) model with the same subset of factors on the right-hand side but with different asset-specific factor coefficients, and a jointly distributed vector error with an unknown precision (inverse covariance) matrix. 
-In the case of a leading set of 12 factors, along with the intercept which can be present or absent in each possible case, this leads to $2^{13}$ possible SUR models, which along with 6 different assumptions about the error distribution, amounts to the comparison of 49152 SUR models. 
-We carefully compare these models with the help of objectively constructed priors (one for each of our models) using a training sample, and with the calculation of marginal likelihoods, computed by the method of \cite{chib1995marginal}. 
-Marginal likelihoods are proportional to the posterior probability of each model and have recognized finite sample and asymptotic properties. 
-In particular, marginal likelihoods include a penalty for complexity (in other words models with more factors do not necessarily gather greater support) and asymptotically pick either the true model (if it is in the class being considered) or find the model that is closet to the true model (if it is not in the class being considered). 
-Our comparison focuses on test assets from the current literature on this topic: a collection of 10 asset portfolios and a collection of 10 equities. Our results show ...

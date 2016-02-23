@@ -12,6 +12,7 @@
 \usepackage{caption}
 \usepackage{subcaption}
 \usepackage{todonotes}
+\usepackage{authblk}
 \usepackage{mathrsfs}
 \usepackage{setspace}
 % \singlespacing
@@ -35,6 +36,9 @@
 \newtheorem{ex}{Example}[section]
 \theoremstyle{definition}
 \newtheorem{alg}{Algorithm}[section]
+
+%For multiple authors thing
+\renewcommand\Authands{ and }
 
 %Bold proof titles
 \makeatletter \renewenvironment{proof}[1][\proofname] {\par\pushQED{\qed}\normalfont\topsep6\p@\@plus6\p@\relax\trivlist\item[\hskip\labelsep\bfseries#1\@addpunct{.}]\ignorespaces}{\popQED\endtrivlist\@endpefalse} \makeatother

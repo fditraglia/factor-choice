@@ -1,0 +1,337 @@
+\documentclass[12pt]{article}
+\usepackage{enumerate, hyperref}
+\usepackage{amsmath, amssymb}
+\usepackage[margin=1.1in]{geometry}
+\usepackage{multirow}
+\usepackage{apacite} %apa citation style
+\bibliographystyle{apacite}
+
+\begin{document}
+\section{Abstract}
+    In this paper we revisit one of the classic questions in empirical finance: which factors in combination are useful for explaining the time-series and cross-section behavior of equity and portfolio returns? The contribution of this paper is to consider this question from a Bayesian perspective recognizing that proper evaluation of the worth of a factor has to be in the context of models with and without other factors. Answering such a question therefore requires the consideration of all possible subset models, where the subset models are essentially special cases of a seemingly unrelated regression (SUR) model with the same subset of factors on the right-hand side but with different asset-specific factor coefficients, and a jointly distributed vector error with an unknown precision (inverse covariance) matrix. In the case of a leading set of 12 factors, along with the intercept which can be present or absent in each possible case, this leads to $2^{13}$ possible SUR models, which along with 6 different assumptions about the error distribution, amounts to the comparison of 49152 SUR models. We carefully compare these models with the help of objectively constructed priors (one for each of our models) using a training sample, and with the calculation of marginal likelihoods, computed by the method of \cite{chib1995marginal}. Marginal likelihoods are proportional to the posterior probability of each model and have recognized finite sample and asymptotic properties. In particular, marginal likelihoods include a penalty for complexity (in other words models with more factors do not necessarily gather greater support) and asymptotically pick either the true model (if it is in the class being considered) or find the model that is closet to the true model (if it is not in the class being considered). Our comparison focuses on test assets from the current literature on this topic: a collection of 10 asset portfolios and a collection of 10 equities. Our results show ...
+\section{Introduction}
+  An abiding, key question in empirical finance is the following: which factors are useful for explaining the time series and cross-section behavior of equity and portfolio returns? There is by now a vast literature on this topic concerned with the development of possible factors and the empirical evaluation of those factors. Along with the original market factor introduced in \cite{sharpe1964capital} and \cite{lintner1965valuation}, an array of new factors have emerged as documented in \cite{harvey2015and}. Determining the empirical relevance of these factors is an ongoing statistical challenge and different avenues continue to be energetically explored. For instance, \cite{hou2014comparison} compare the \cite{hou2014digesting} and   \cite{fama2015five} five-factor models based on the conceptual understanding of factors and the ability of the factors to explain asset-pricing anomalies.  A more statistical evaluation is provided by \cite{harvey2015lucky} who start with a collection of 12 leading factors and use a bootstrap procedure to forward select relevant factors. Stepwise selection, however, does not necessarily asymptotically produce the best model. This is particularly true in the presence of redundant factors (see \cite{judd2011data}). \\
+  Our goal in this paper is to offer a quite different method for finding the best collection of factors. Our starting point is the recognition that the proper evaluation of the worth of a factor has to be in the context of models with and without other factors. Thus, basing a decision of the importance of a factor based solely on the t-statistic, or related statistics, ignores the question of joint significance and correlation between factors. Instead, answering the relevance question requires the consideration of all possible subset models, where the subset models are essentially special cases of a seemingly unrelated regression (SUR) model with the same subset of factors on the right-hand side but with different asset-specific factor coefficients, and a jointly distributed vector error with an unknown precision matrix. Restricting ourselves to 12 factors (10 from \cite{harvey2015lucky} and 2 additional ones), 
+  and an intercept which can be present or absent in each possible case, leads to $2^{13}$ possible SUR models, which along with 6 different assumptions about the error distribution, amounts to the comparison of 49152 SUR models.\\
+   Our next innovation is to utilize a carefully crafted Bayesian approach to implement the comparison of these disparate models. Careful in this context means that the prior distribution is not placed independently on each factor, since we recognize that the meaning and importance of the factor coefficients and the error precision matrix vary by model. Each of the required 49152 different prior distributions are specified in an automatic and importantly, objective fashion, by employing a small training sample that precedes our estimation sample. Careful also refers to the use of a SUR type model in which error distribution and error precision are also viewed as unknowns that have to be inferred. \\
+   Decisions about the best model are then taken by the comparison of Bayesian marginal likelihoods, computed readily by the method of \cite{chib1995marginal}, for each of these models. This comparison of our models by Bayesian marginal likelihoods has well-recognized theoretical properties (in a small simulation exercise we also document the excellent performance of the marginal likelihood criterion in picking the true model). In particular, marginal likelihoods include a penalty for complexity. In other words, models with more factors do not necessarily gather greater support. In addition, models picked according to the marginal likelihoods, asymptotically pick either the true model, if it is in the class being considered, or find the model that is closet to the true model, if it is not in the class being considered. Our marginal likelihood based model exploration, therefore, provides an effective, previously unexplored avenue for evaluating the joint rather than individual importance of factors.  \\
+  Our paper adds to the growing literature on the use of Bayesian techniques in finance. \cite{avramov2002stock} and \cite{cremers2002stock}, for example, use Bayesian model-averaging to explore the question of market-return predictability with multiple predictors, while \cite{shanken1987bayesian}, \cite{harvey1990bayesian} and \cite{avramov2006exact} take a Bayesian approach to consider the question of the significance (or lack thereof) of the intercept in the CAPM context, providing a Bayesian alternative to the frequentist test of this hypothesis developed by \cite{gibbons1989test}.
+
+ (results HERE)
+
+ The rest of the paper unfolds as follows. Section 1 describes the model with Student-t errors and the estimation framework. Section 2 provides a simulation example to motivate our research. Section 4 describes the main results. Finally, section 5 concludes. Results for the model with normal errors and general description of the three block sample can be found in the
+ appendix.
+
+\section{Model and Framework}
+Consider a linear $K$-factor model for $D$ assets of the form
+\begin{equation*}
+y_{it}=\alpha _{d} + \mathbf{f}_{t}' \boldsymbol{\beta}_d + \varepsilon_{it}
+\end{equation*}
+where $d = 1, \hdots, D$ and $t = 1, \hdots, T$ and $\mathbf{f}_{t}'=\left(f_{t1}, \hdots,f_{tK}\right)$ is a $K\times1$ vector.\\
+We consider a cross-section of $D$ returns. $y_{it}$ denotes a return for an asset $i$ at period $t$. The cross-section of returns on right hand side is the same for all models. The returns are assumed to follow a common factor structure with $K$ factors denoted as $\mathbf{f}_{t}$. Note that the factors included into the regression $\mathbf{f}$, the number of factors $K$ as well as the presence of the intercept depend on the model under consideration.  In order to simplify the notation, we do not introduce the model index, however, it is important to keep in mind that the techniques discussed below are applied to each possible combination of factors.\\
+This is a special case of the seemingly unrelated regression (SUR) model in which the regressors are \emph{identical} across equations. \\
+Stacking observations for a given time period across assets, define $\mathbf{y}_t' = (y_{1t}, \hdots, y_{Dt})$ and analogously $\boldsymbol{\varepsilon}_t' = \left( \varepsilon_{t1}, \hdots \varepsilon_{tD} \right)$. Both $\mathbf{y}_t$ and $\boldsymbol{\varepsilon}_t$ are $D \times 1$ vectors.
+Now let $\mathbf{x}_t' = (1, \mathbf{f}_t')$ be a $1 \times (K+1)$ vector and $\boldsymbol{\gamma}_d' = (\alpha_d, \boldsymbol{\beta}_d')$ to be a $1 \times (K+1)$ so we have
+\begin{equation*}
+\mathbf{y}_t = X_t \boldsymbol{\gamma} + \boldsymbol{\varepsilon}_t
+\end{equation*}
+where $X_t = I_D \otimes \mathbf{x}_t'$, a $D \times D(K+1)$ matrix, and $\boldsymbol{\gamma}'= \left( \boldsymbol{\gamma}_1', \hdots, \boldsymbol{\gamma}_D' \right)$, a $1 \times (K+1)D$ vector. 
+Let $Y_T$ denote the full data sample, i.e.\ $\left\{ \mathbf{y}_t, \mathbf{x}_t \right\}_{t=1}^T$.\\
+In order to apply Bayesian inference, we should make an assumption about the joint distribution of the errors $\varepsilon_t$.  Different specifications of the errors distribution can lead to the selection of different models. The normality assumption, which is often exploited due to the conjugacy properties, should be treated with caution because the tail behavior of the financial returns is different from the one imposed by Gaussian distribution. For this reason we fit a multivariate Student-t distribution that accounts for fat tails specific to the returns. As we want to remain agnostic about the shape of the distribution, we explore multiple distributions from the same family with different degrees of freedom and let the data determined the best one.\\
+Suppose now that the errors follow a multivariate Student-t distribution: 
+\begin{equation*}
+\boldsymbol{\varepsilon}_{t}\sim t_{D,\nu }\left( 0,\Omega \right)
+\end{equation*}
+where $\nu$ denotes the degrees of freedom of the distribution, the location parameter is zero and the scale matrix is $\Omega$.
+If $\nu >1$ then $E(\boldsymbol{\varepsilon}) = 0$. 
+If $\nu>2$ then $Var\left( \boldsymbol{\varepsilon} \right) = \nu \Omega/(\nu-2)$. \\
+The SUR model lets us explicitly explore the cross-sectional dependence of errors by jointly fitting the model for all assets. The possible variance linkages between different assets are captured by the scale matrix $\Omega$. While acknowledging the importance of these linkages and the possible influence they may have on the model selection, we have little understanding about their nature and thus should avoid imposing rigid assumptions. Careful treatment of the covariance matrix $\Omega$ and its inverse $\Omega^{-1}$ allows us to infer the covariance structure of errors from the data.
+\subsection{A Hierarchical Representation}
+Replacing the normal likelihood with the Student-t likelihood, however, breaks the conditional conjugacy that is usually exploited to construct an MCMC algorithm based on the Gibbs sampler.
+The solution to this problem is to work with a hierarchical representation in which the Student-t likelihood is introduced as a scale mixture of normal distributions (\cite{chib1995hierarchical}), in particular
+\begin{align*}
+\boldsymbol{\varepsilon}_{t}|\lambda _{t} &\sim N\left( 0,\lambda _{t}^{-1}\Omega \right)
+\\
+\lambda _{t} &\sim G\left( \frac{\nu }{2},\frac{\nu }{2}\right)
+\end{align*}
+where $G(\alpha,\beta)$ denotes the Gamma distribution with shape parameter $\alpha$ and rate parameter $\beta$. We parameterize this problem in terms of the $D\times D$ \emph{precision} matrix $\Omega^{-1}$ and the $p\times1$ vector of regression coefficients $\boldsymbol{\gamma}$, where $p = D(K+1)$. 
+Using this representation, after conditioning on $\left( \nu, \boldsymbol{\lambda} \right)$, where $\boldsymbol{\lambda} = (\lambda_1, \dots \lambda_T)'$, we are essentially back in the familiar normal case.
+In any inference that we carry out, as well as in the calculation of the marginal likelihood, we will marginalize over $\boldsymbol{\lambda}$ by simply ignoring these draws.
+We will place a normal prior on $\boldsymbol{\gamma}$ and a Wishart prior on $\Omega^{-1}$. 
+
+\subsection{The Gibbs Sampler}
+The sampler proceeds by fixing the degrees of freedom parameter $\nu$.
+If $\nu$ is to be chosen from the data, this can be accomplished using the marginal likelihood, as described below.
+Holding $\nu$ fixed, the full set of conditional posteriors is as follows:
+
+\paragraph{Regression Coefficients:} 
+$\boldsymbol{\gamma}|\Omega^{-1},Y_T \sim \mathcal{N}_p\left( \bar{\boldsymbol{\gamma}}_{\lambda},G_{T,\lambda} \right)$
+\begin{eqnarray*}
+	G_{T,\lambda} &=& \left[ G_0^{-1} + \sum_{t=1}^T \lambda_t X_t' \Omega^{-1} X_t \right]^{-1}\\
+	\bar{\boldsymbol{\gamma}}_{\lambda} &=& G_{T,\lambda} \left[ G_0^{-1}\boldsymbol{\gamma}_0 + \sum_{t=1}^{T}\lambda_t X_t'\Omega^{-1}\mathbf{y}_t \right]
+\end{eqnarray*}
+\paragraph{Inverse Scale Matrix:}
+$\Omega^{-1}|Y_T \sim \mathcal{W}_D\left(\rho_0 + T, R_{T,\lambda}\right)$
+\begin{equation*}
+R_{T,\lambda} = \left[ R_0^{-1} + \sum_{t=1}^{T} \lambda_t\left( \mathbf{y}_t - X_t \boldsymbol{\gamma} \right)\left( \mathbf{y}_t - X_t \boldsymbol{\gamma} \right)' \right]^{-1}
+\end{equation*}
+
+\paragraph{Auxiliary Parameter:} $\lambda_t|\boldsymbol{\gamma}, \nu, Y_T \sim G\left(\displaystyle \frac{\nu + D}{2}, \frac{\nu + \boldsymbol{\varepsilon}_t' \boldsymbol{\varepsilon}_t}{2} \right)$, $\boldsymbol{\varepsilon}_t = \mathbf{y}_t - X_t \boldsymbol{\gamma}$
+
+To implement the Gibbs sampler, we simply need to draw sequentially from these distributions, in the order given above. 
+We will require, however, starting values for both $\Omega^{-1}$ and each of the $\lambda_t$ parameters. 
+A reasonable starting value for $\lambda_t$ is one, which makes the initial draws for the regression coefficients and the inverse scale matrix the same as if were work withing with the normal model.
+
+\subsection{Marginal Likelihood for Student-t Model}
+ We calculate the marginal likelihood using the method of \cite{chib1995marginal}.
+ \begin{equation*}
+ f(y) = \frac{(y|\boldsymbol{\gamma}^*,\Omega^{-1*})\pi\left(\boldsymbol{\gamma}^*, \Omega^{-1*}\right)}{\pi\left(\boldsymbol{\gamma}^*, \Omega^{-1*}|y \right)}
+ \end{equation*} 
+Re-arranging Bayes' Rule we have the identity
+\begin{equation*}
+f(y) = \frac{f(y|\boldsymbol{\gamma}^*,\Omega^{-1*})\pi\left(\boldsymbol{\gamma}^*, \Omega^{-1*}\right)}{\pi\left(\boldsymbol{\gamma}^*, \Omega^{-1*}|y \right)}
+\end{equation*}
+for any specified values $(\boldsymbol{\gamma}^*,\Omega^{-1*})$ of the parameters.
+In particular this holds at the \emph{posterior mean} which is where we will evaluate the expression.
+Hence, the \emph{log} marginal likelihood is given by
+\begin{equation*}
+\log{f(y)} =  \log \left(\boldsymbol{\gamma}^*, \Omega^{-1*}\right) + \log{f(y|\boldsymbol{\gamma}^*,\Omega^{-1*})} - \pi\left(\boldsymbol{\gamma}^*, \Omega^{-1*}|y \right)
+\end{equation*}
+Specializing this to the SUR model considered above,
+\begin{equation*}
+\log f(Y_T) = \log \pi(\boldsymbol{\gamma}^*) + \log \pi\left( \Omega^{-1*} \right) + \log f\left( Y_T|\boldsymbol{\gamma}^*, \Omega^{-1*} \right) - \log \pi\left( \boldsymbol{\gamma}^*, \Omega^{-1*}|Y_T \right)
+\end{equation*}
+since our priors over $\boldsymbol{\gamma}$ and $\Omega^{-1}$ are independent. We can evaluate the marginal likelihood using the \cite{chib1995marginal} method that approximates $\log f(Y_T)$ by evaluating each of the terms on the right-hand-side of the preceding expression using the output of the Gibbs sampler.
+\subsection{Priors}
+One of the most challenging parts of the estimation procedure is to set up reasonable priors. In order for the marginal likelihood comparison to be valid, the marginal likelihood for each model should be compute with proper prior. Using generic prior may lead to undesirable consequences. In other words, it's important to set the priors carefully and make them specific to each model under consideration. In order to set individual level priors, we suggest to use a training sample to form qualified prior views for every model at hand. The priors based on he training sample are model-specific and thus can be used for model comparison. We split  the sample into two parts: training sub-sample and fit sub-sample. The training sample is used to carefully construct priors later used to fit the model on the rest of the data. Training sample is not a part of the final estimation. \\
+Both for Student-t and normal errors we specify two prior distributions: for the coefficients $\gamma \sim \mathcal{N}_{p}\left( \boldsymbol{\gamma} |\boldsymbol{\gamma_{0}},G_{0}\right)$ and for the precision matrix $\Omega^{-1} \sim \mathcal{W}_{D}  \left(\Omega ^{-1}|\rho_{0}, R_{0}\right) $. Parameters for the two distributions are specified differently for each stage.
+
+
+\subsubsection{Stage 1: Training Sample}
+When applying the method to the training sample, we have very little information about the possible parameters values. We use diffused priors to reflect the uncertainty.\\
+For each model we start with the assumption that factor loadings can be both positive and negative. We have very little information about how these loadings interact, so our starting point would be to use diagonal covariance matrix of factor loadings. 
+Parameters of the prior for the regression coefficients are set as follows:
+\begin{eqnarray*}
+	\gamma_{0} &=& 0 \\ 
+	G_{0} &=& C_{1}^{2}I_{p} 
+\end{eqnarray*}
+The prior distribution of the coefficient vector is centered around zero. The covariance matrix is assumed to be diagonal. The constant $C_{1}$ controls the tightness: the larger $C_{1}$, the wider is the prior.\\
+As we have very little information about the covariance structure of the errors, a prior centered around the diagonal matrix seems to be a reasonable starting point. Covariance matrix is assumed to follow the inverse Wishart distribution with the following parameters:
+\begin{eqnarray*}
+	\rho_{0} &=& d + C_{2} \\ 
+	R_{0} &=& \frac{1}{C_{3}^{2} (\rho_{0}-d-1)}I_{d}
+\end{eqnarray*}
+Using the properties of the inverse Wishart distribution, one can easily see that the mean value of $\Omega$ implied by the prior is a diagonal matrix $R_{0} \times(\rho_{0} - d- 1) = C_{3}^{2}I_{d}$. One way of widening the prior would be to decrease number of degrees of freedom $\rho_{0}$ by adjusting the value of $C_2$. Constant $C_{3}$ is used to set the magnitude of the elements of the covariance matrix. \\
+For the rest of the paper we set $C_{1} = 2$, $C_{2} = 6$ and $C_{3} = 0.05$ (we are working with return in decimals).\\
+These priors are used to estimate the model using only the training sample data. The posterior draws obtained as a result of the procedure, are later used to form more informed view about the model parameters.
+\subsubsection{Stage 2}
+The first stage draws contain some information about the parameters and serve as a basis to construct proper priors for the estimation. Denote firs stage posterior means of $\gamma$ as $\overline{\gamma}$ and the sample covariance matrix of these draws as $\widehat{G}$. We also calculate a posterior mean of the precision matrix $\Omega^{-1}$: $\overline{\Omega}^{-1}$. \\
+The regression coefficients prior is:
+\begin{eqnarray*}
+	\gamma_{0} &=& \overline{\gamma} \\ 
+	G_{0} &=& C_{4}^{2} \widehat{G}
+\end{eqnarray*}\\
+The prior of factor loadings is thus centered around the posterior mean of the first step draws. The  standard deviation is based on the sample standard deviation of the first stage draws adjusted by the factor of $C_{4}$ to reflect uncertainty.\\
+ Note that our algorithm  provides us draws of the precision matrix $\Omega^{-1}$, not of the covariance matrix $\Omega$. For this reason we form the prior in terms of the posterior mean of ${\Omega}^{-1}$. We use the duality of Wishart and inverse Wishart distribution: if $\Omega \sim \mathcal{W}_D\left(\rho_0, R_0 \right)$, $\Omega^{-1} \sim \mathcal{IW}_D\left(\rho_0, R_0 \right)$. The prior of the precision matrix is set:
+\begin{eqnarray*}
+	\rho_{0} &=& d + C_{5} \\ 
+	R_{0} &=& \frac{1}{\rho} \overline{\Omega}^{-1}
+\end{eqnarray*}
+The prior is constructed to set the mean of the precision matrix $\Omega^{-1}$ equal to the posterior mean based on the training sample: $\rho_{0} \times R_{0} =\overline{\Omega}^{-1} $. Again, the tighteness of the prior is controlled by degrees of freedom parameter $\rho_{0}$. \\
+For all the applications we use $C_{4} = 3$ and $C_5 = 6$.
+\subsection{Prior Updates}
+
+\section{Motivational Example}
+In order to motivate our research we simulate asset returns and demonstrate that the true factors are selected as the result of the procedure described above. \\
+As asset returns we take 10 value-weighted Fama-French industry portfolios. The returns are assumed to be follow the famous Fama-French 3 factor structure without intercept (Mkt.RF, HML and SMB). The errors follow Student-t distribution with 2.5 degrees of freedom. The simulation is based on posterior means obtained when fitting the model to the real data. Other parameters are the same as in the original sample. \\
+We assume that the researcher does not know the true distribution. Considered distributions include normal and Student-t with 4, 6, 8, 10 and 12 degrees of freedom. The pool of candidate models includes all combinations of Fama-French 5 factors(Mkt.RF, HML, SMB, RMW and CMA), a constant and a non-factor asset - Microsoft stock (MSFT). We add a Microsoft stock  because of the wide-spread concern that non-factors may be selected if they are correlated with the true factors. Our results indicate this concern is not supported in the Bayesian framework. We fit in total $6\times 2^{7} = 768$ model. The simulation is based on the sample range Apr 1986 - Dec 2014 (345 observations). The training sample includes observations Apr 1986 - Dec 1990 (57 observations). \\
+The simulation setup is described below:
+\begin{enumerate}
+	\item Fit the Fama-French 3 factor model without an intercept to 10 value-weighted industry portfolios using the full sample. The errors are assumed to follow Student-t distribution with 4 degrees of freedom. 
+	\item Simulate a dataset assuming the true parameters  $\gamma$ and $\Omega^{-1} $ to be equal to the posterior means:
+	\begin{itemize}
+		\item Simulate errors:
+		\begin{equation*}
+		\boldsymbol{\varepsilon}^s_{t}\sim t_{10,2.5 }\left( 0,\Omega \right)
+		\end{equation*}
+		\item Simulate returns using values of Fama-French 3 factors observed in the data:
+		\begin{equation*}
+		\mathbf{y}_t^s = X_t \boldsymbol{\gamma} + \boldsymbol{\varepsilon}^s_t
+		\end{equation*}
+	\end{itemize}
+	\item Estimate all candidate models and evaluate the likelihood. Run the usual two step estimation procedure using the training sample to construct priors for each model.  
+\end{enumerate}
+
+\begin{table}[ht]
+	\footnotesize
+	\centering
+	\begin{tabular}{rrrrrrrrrrrr}
+		\hline
+		& & NoDur & Durbl & Manuf & Enrgy & HiTec & Telcm & Shops & Hlth & Utils & Other \\ 
+		\hline
+		\multirow{3}{*}{Data} & Apr 1986 - Dec 2014 & 0.0080 & 0.0056 & 0.0078 & 0.0080 & 0.0074 & 0.0062 & 0.0073 & 0.0084 & 0.0061 & 0.0058 \\ 
+		& Apr 1986 - Dec 1990 & 0.0099 & -0.0033 & 0.0034 & 0.0092 & -0.0037 & 0.0084 & 0.0036 & 0.0095 & 0.0033 & -0.0020 \\ 
+		& Jan 1991 - Dec 2014 & 0.0076 & 0.0073 & 0.0086 & 0.0078 & 0.0096 & 0.0057 & 0.0080 & 0.0082 & 0.0066 & 0.0073 \\ 
+		\hline
+		\multirow{3}{*}{Simulated} & Apr 1986 - Dec 2014 & 0.0035 & 0.0104 & 0.0063 & 0.0036 & 0.0062 & 0.0089 & 0.0045 & 0.0052 & 0.0043 & 0.0085 \\ 
+		& Apr 1986 - Dec 1990 & -0.0016 & 0.0039 & 0.0020 & 0.0005 & 0.0032 & 0.0106 & -0.0016 & 0.0025 & 0.0047 & 0.0036 \\ 
+		& Jan 1991 - Dec 2014 & 0.0045 & 0.0117 & 0.0071 & 0.0042 & 0.0067 & 0.0086 & 0.0057 & 0.0057 & 0.0043 & 0.0094 \\ 
+		\hline
+	\end{tabular}
+	\caption{Average Portfolio Returns for Simulated and Real Data}
+\end{table}
+\begin{table}[ht]
+	\centering
+	\footnotesize
+	\begin{tabular}{rrrrrrr}
+		\hline
+		& Mkt.RF & SMB & HML & RMW & CMA & MSFT \\ 
+		\hline
+		 Apr 1986 - Dec 2014 & 0.0062 & 0.0011 & 0.0023 & 0.0036 & 0.0033 & 0.0102 \\ 
+		Apr 1986 - Dec 1990 & 0.0028 & -0.0068 & 0.0003 & 0.0047 & 0.0054 & 0.0327 \\ 
+		Jan 1991 - Dec 2014 & 0.0069 & 0.0027 & 0.0027 & 0.0034 & 0.0029 & 0.0058 \\ 
+		\hline
+	\end{tabular}
+		\caption{Average Factor Returns}
+\end{table}
+\begin{table}[ht]
+	
+	\centering
+	\footnotesize
+	\begin{tabular}{ccc}
+		\hline
+		Model & DF & log margLike \\ 
+		\hline
+Mkt.RF + SMB + HML & 4 & 7187.32 \\ 
+Mkt.RF + SMB + HML + CMA & 4 & 7177.05 \\ 
+Mkt.RF + SMB + HML + MSFT & 4 & 7170.99 \\ 
+Mkt.RF + SMB + HML + RMW & 4 & 7170.24 \\ 
+Mkt.RF + SMB + HML & 6 & 7169.59 \\ 
+Mkt.RF + SMB + HML + CMA + MSFT & 4 & 7161.34 \\ 
+constant + Mkt.RF + SMB + HML & 4 & 7160.41 \\ 
+Mkt.RF + SMB + HML + CMA & 6 & 7159.73 \\ 
+constant + Mkt.RF + SMB + HML + CMA & 4 & 7157.97 \\ 
+Mkt.RF + SMB + HML + RMW + MSFT & 4 & 7152.92 \\ 
+Mkt.RF + SMB + HML & 8 & 7152.24 \\ 
+constant + Mkt.RF + SMB + HML + MSFT & 4 & 7151.56 \\ 
+Mkt.RF + SMB + HML + RMW & 6 & 7151.19 \\ 
+constant + Mkt.RF + SMB + HML & 6 & 7149.93 \\ 
+constant + Mkt.RF + SMB + HML + RMW & 4 & 7147.47 \\ 
+Mkt.RF + SMB + HML + MSFT & 6 & 7147.06 \\ 
+Mkt.RF + SMB + HML + RMW + CMA & 4 & 7146.92 \\ 
+Mkt.RF + SMB + HML + CMA + MSFT & 6 & 7146.04 \\ 
+constant + Mkt.RF + SMB + HML + CMA + MSFT & 4 & 7145.13 \\ 
+constant + Mkt.RF + SMB + HML + MSFT & 6 & 7139.5 \\ 
+		\hline
+	\end{tabular}
+	\caption{Motivational Simulation: 20 Best Models}
+\end{table}
+
+The best model selects the true factors. Even though the true error distribution (Student-t with 2.5 degrees of freedom) was not considered, the distribution of the best model (Student-t with 4 degrees of freedom) is the closest to the truth. \\
+As can be seen from the results, the procedure correctly identified the factors. Models including non-relevant factors or the non-factor (Microsoft stock) are significantly worse on the log scale.
+\section{Application}
+\subsection{Data}
+We apply our method to 10 value-weighted industry portfolios available at the Kenneth French's website: Consumer NonDurables(NoDur), Consumer Durables(Dur), Manufacturing(Manuf),  Oil, Gas, and Coal Extraction and Products(Enrgy), Business Equipment(HiTec),   Telephone and Television Transmission(Telcm),   Wholesale, Retail, and Some Services (Shops),
+Healthcare, Medical Equipment, and Drugs(Hlth),
+Utilities(Utils), Other(Other). \\
+The 12 candidate factors include (aside from the constant)\footnote{We thank Lu Zhang for providing us the factors constructed in \cite{hou2014digesting}. Other factors are obtained from authors' web-pages.}:
+\begin{itemize}
+	\item five factors by \cite{fama1993common} and \cite{fama2015five}: market(Mkt.RF), size(SMB), value(HML), profitability(RMW) and investment(CMA)
+	\item three factors proposed by \cite{hou2014digesting}: size(ME), profitability(ROE) and investment(IA)
+	\item momentum factor(MOM) as in \cite{carhart1997persistence}
+	\item liquidity(LIQv) introduced in \cite{stambaugh2003liquidity}
+	\item quality factor(QMJ) as offered by \cite{asness2014quality}
+	\item alternative value factor(HMLDev) constructed by \cite{asness2013devil}
+\end{itemize}
+
+The full sample ranges from Jan 1968 - Dec 2014 (564 observations). The training sample is Jan 1968 - Dec 1979(144 observation). \\
+We report the summary statistics in the tables below. As can be seen from the correlation matrix, many factors co-move together. This is the reason why the question of joint rather than individual significance is especially relevant for this set up. Our method is capable of addressing this issue because our selection of models is based on comparing all possible combinations of factors.
+\begin{table}[ht]
+	\footnotesize
+	\centering
+	\begin{tabular}{rrrrrrrrrrr}
+		\hline
+		& NoDur & Durbl & Manuf & Enrgy & HiTec & Telcm & Shops & Hlth & Utils & Other \\ 
+		\hline
+		Jan 1968 - Dec 2014 & 0.0068 & 0.0046 & 0.0055 & 0.0064 & 0.0048 & 0.0054 & 0.0063 & 0.0066 & 0.0049 & 0.0050 \\ 
+		Jan 1968 - Dec 1979 & 0.0006 & -0.0009 & -0.0003 & 0.0048 & -0.0012 & 0.0013 & 0.0004 & 0.0013 & 0.0003 & 0.0005 \\ 
+			Jan 1980 - Dec 2014 & 0.0090 & 0.0064 & 0.0075 & 0.0070 & 0.0069 & 0.0068 & 0.0084 & 0.0084 & 0.0065 & 0.0065 \\ 
+		\hline
+	\end{tabular}
+		\caption{Average Portfolio Returns}
+\end{table}
+\begin{table}[ht]
+	\scriptsize
+	\centering
+	\begin{tabular}{rrrrrrrrrrrrr}
+		\hline
+		& LIQv & MOM & Mkt.RF & SMB & HML & RMW & CMA & QMJ & ME & IA & ROE & HMLDev \\ 
+		\hline
+		 Jan 1968 - Dec 2014 & 0.0043 & 0.0066 & 0.0049 & 0.0020 & 0.0038 & 0.0026 & 0.0037 & 0.0039 & 0.0028 & 0.0046 & 0.0055 & 0.0039 \\ 
+		Jan 1968 - Dec 1979 & 0.0014 & 0.0080 & 0.0003 & 0.0039 & 0.0059 & -0.0004 & 0.0049 & 0.0018 & 0.0049 & 0.0061 & 0.0043 & 0.0073 \\ 
+		Jan 1980 - Dec 2014 & 0.0053 & 0.0061 & 0.0065 & 0.0014 & 0.0030 & 0.0037 & 0.0033 & 0.0046 & 0.0020 & 0.0040 & 0.0059 & 0.0028 \\ 
+		\hline
+	\end{tabular}
+	\caption{Average Factor Returns}
+\end{table}
+\begin{table}[ht]
+	\scriptsize
+	\centering
+	\begin{tabular}{rrrrrrrrrrrrr}
+		\hline
+		& LIQv & MOM & Mkt.RF & SMB & HML & RMW & CMA & QMJ & ME & IA & ROE & HMLDev \\ 
+		\hline
+		LIQv & 1.00 & -0.02 & -0.06 & -0.03 & 0.03 & 0.03 & 0.02 & 0.04 & -0.04 & 0.02 & -0.06 & 0.07 \\ 
+		MOM & -0.02 & 1.00 & -0.13 & -0.05 & -0.15 & 0.10 & 0.02 & 0.25 & -0.02 & 0.04 &\textbf{ 0.50} & \textbf{-0.64} \\ 
+		Mkt.RF & -0.06 & -0.13 & 1.00 & 0.28 & -0.32 & -0.21 & -0.40 & \textbf{-0.53} & 0.26 & -0.39 & -0.20 & -0.13 \\ 
+		SMB & -0.03 & -0.05 & 0.28 & 1.00 & -0.13 & -0.38 & -0.09 & \textbf{-0.52} & \textbf{0.97} & -0.19 & -0.39 & -0.02 \\ 
+		HML & 0.03 & -0.15 & -0.32 & -0.13 & 1.00 & 0.11 & \textbf{0.71} & 0.02 & -0.08 & \textbf{0.69} & -0.10 & \textbf{0.77 }\\ 
+		RMW & 0.03 & 0.10 & -0.21 & -0.38 & 0.11 & 1.00 & -0.06 & \textbf{0.76} & -0.37 & 0.06 & \textbf{0.68} & -0.07 \\ 
+		CMA & 0.02 & 0.02 & -0.40 & -0.09 & \textbf{0.71} & -0.06 & 1.00 & 0.08 & -0.05 & \textbf{0.91} & -0.08 & \textbf{0.51} \\ 
+		QMJ & 0.04 & 0.25 & \textbf{-0.53} & \textbf{-0.52} & 0.02 & \textbf{0.76} & 0.08 & 1.00 & \textbf{-0.50} & 0.15 & \textbf{0.69} & -0.21 \\ 
+		ME & -0.04 & -0.02 & 0.26 & \textbf{0.97} & -0.08 & -0.37 & -0.05 & \textbf{-0.50} & 1.00 & -0.15 & -0.32 & -0.01 \\ 
+		IA & 0.02 & 0.04 & -0.39 & -0.19 & \textbf{0.69} & 0.06 &\textbf{ 0.91} & 0.15 & -0.15 & 1.00 & 0.05 & 0.49 \\ 
+		ROE & -0.06 & \textbf{0.50} & -0.20 & -0.39 & -0.10 & \textbf{0.68} & -0.08 & \textbf{0.69} & -0.32 & 0.05 & 1.00 & -0.45 \\ 
+		HMLDev & 0.07 & \textbf{-0.64} & -0.13 & -0.02 & \textbf{0.77} & -0.07 & \textbf{0.51} & -0.21 & -0.01 & 0.49 & -0.45 & 1.00 \\ 
+		\hline
+	\end{tabular}
+	\caption{Factors Correlation Matrix (based on full sample)}
+\end{table}
+\begin{table}[ht]
+	\footnotesize
+	\centering
+	\begin{tabular}{ccc}
+		\hline
+		Model & DF & log margLike \\ 
+		\hline
+		MOM + Mkt.RF + HML + RMW + CMA + QMJ + ME + ROE + HMLDev & 6 & 9713.58 \\ 
+		MOM + Mkt.RF + SMB + HML + RMW + CMA + QMJ + ME + HMLDev & 6 & 9713.53 \\ 
+		MOM + Mkt.RF + HML + RMW + CMA + QMJ + ME + ROE & 6 & 9713.47 \\ 
+		MOM + Mkt.RF + HML + RMW + CMA + QMJ + ME + ROE + HMLDev & 8 & 9713.33 \\ 
+		MOM + Mkt.RF + HML + RMW + CMA + QMJ + ME + ROE & 8 & 9712.67 \\ 
+		MOM + Mkt.RF + SMB + HML + RMW + CMA + QMJ + ME + HMLDev & 8 & 9712.61 \\ 
+		MOM + Mkt.RF + SMB + HML + RMW + CMA + QMJ + ME & 6 & 9712.45 \\ 
+		MOM + Mkt.RF + SMB + HML + RMW + CMA + QMJ + ROE + HMLDev & 6 & 9712.26 \\ 
+		MOM + Mkt.RF + SMB + HML + RMW + CMA + QMJ + ROE & 6 & 9712.21 \\ 
+		MOM + Mkt.RF + SMB + HML + RMW + CMA + QMJ + ROE & 8 & 9711.74 \\ 
+		MOM + Mkt.RF + SMB + HML + RMW + CMA + QMJ + ROE + HMLDev & 8 & 9711.72 \\ 
+		constant + MOM + Mkt.RF + HML + RMW + CMA + QMJ + ME + ROE + HMLDev & 6 & 9711.61 \\ 
+		constant + MOM + Mkt.RF + HML + RMW + CMA + QMJ + ME + ROE + HMLDev & 8 & 9711.59 \\ 
+		MOM + Mkt.RF + SMB + HML + RMW + CMA + QMJ + ME & 8 & 9711.46 \\ 
+		MOM + Mkt.RF + SMB + HML + RMW + CMA + QMJ + ME + IA + HMLDev & 6 & 9711.1 \\ 
+		MOM + Mkt.RF + HML + RMW + CMA + QMJ + ME + IA + HMLDev & 6 & 9710.89 \\ 
+		MOM + Mkt.RF + HML + RMW + CMA + QMJ + ME + HMLDev & 6 & 9710.62 \\ 
+		constant + MOM + Mkt.RF + SMB + HML + RMW + CMA + QMJ + ROE + HMLDev & 6 & 9710.29 \\ 
+		MOM + Mkt.RF + SMB + HML + RMW + CMA + QMJ + ME + IA + HMLDev & 8 & 9710.2 \\ 
+		MOM + Mkt.RF + SMB + HML + RMW + CMA + QMJ + ME + IA & 6 & 9710.11 \\ 
+		\hline
+	\end{tabular}
+		\caption{20 Best Models}
+\end{table}
+\subsection{Results}
+In total we explore $2^{13}$ models and consider 6 possible distribution of errors: Student-t with 4, 6, 8, 10 and 12 degrees of freedom and normal. 
+\section{Conclusion}
+\bibliography{factors}
+\section{Appendix}
+
+\end{document}

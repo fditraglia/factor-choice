@@ -1,18 +1,13 @@
 %!TEX root = ../main.tex
-\section{Model and Framework}
+\section{The Model}
 Consider a linear $K$-factor model for $D$ assets of the form
 \begin{equation*}
-y_{it}=\alpha _{d} + \mathbf{f}_{t}' \boldsymbol{\beta}_d + \varepsilon_{it}
+y_{dt}=\alpha _{d} + \mathbf{f}_{t}' \boldsymbol{\beta}_d + \varepsilon_{it}
 \end{equation*}
-where $d = 1, \hdots, D$ and $t = 1, \hdots, T$ and $\mathbf{f}_{t}'=\left(f_{t1}, \hdots,f_{tK}\right)$ is a $K\times1$ vector.
-
-We consider a cross-section of $D$ returns.
-$y_{it}$ denotes a return for an asset $i$ at period $t$. 
-The cross-section of returns on right hand side is the same for all models. 
-The returns are assumed to follow a common factor structure with $K$ factors denoted as $\mathbf{f}_{t}$. 
-Note that the factors included into the regression $\mathbf{f}$, the number of factors $K$ as well as the presence of the intercept depend on the model under consideration.  
-In order to simplify the notation, we do not introduce the model index, however, it is important to keep in mind that the techniques discussed below are applied to each possible combination of factors.
+where $y_{dt}$ denotes the return for test portfolio $d$ in period $t$ for $d = 1, \hdots, D$ and $t = 1, \hdots, T$ and $\mathbf{f}_{t}'=\left(f_{t1}, \hdots,f_{tK}\right)$ vector of factor returns.
 This is a special case of the seemingly unrelated regression (SUR) model in which the regressors are \emph{identical} across equations.
+Note that the factors included into the regression $\mathbf{f}$, the number of factors $K$ as well as the presence of the intercept depend on the model under consideration.  
+In order to simplify the notation, we do not introduce a model index, however, it is important to keep in mind that the techniques discussed below are applied to each possible combination of factors.
 
 Stacking observations for a given time period across assets, define $\mathbf{y}_t' = (y_{1t}, \hdots, y_{Dt})$ and analogously $\boldsymbol{\varepsilon}_t' = \left( \varepsilon_{t1}, \hdots \varepsilon_{tD} \right)$. 
 Both $\mathbf{y}_t$ and $\boldsymbol{\varepsilon}_t$ are $D \times 1$ vectors.
@@ -21,29 +16,24 @@ Now let $\mathbf{x}_t' = (1, \mathbf{f}_t')$ be a $1 \times (K+1)$ vector and $\
 \mathbf{y}_t = X_t \boldsymbol{\gamma} + \boldsymbol{\varepsilon}_t
 \end{equation*}
 where $X_t = I_D \otimes \mathbf{x}_t'$, a $D \times D(K+1)$ matrix, and $\boldsymbol{\gamma}'= \left( \boldsymbol{\gamma}_1', \hdots, \boldsymbol{\gamma}_D' \right)$, a $1 \times (K+1)D$ vector. 
+If the model does not include a constant we simply remove the column of ones from the definition of $\mathbf{x}_t$.
 Let $Y_T$ denote the full data sample, i.e.\ $\left\{ \mathbf{y}_t, \mathbf{x}_t \right\}_{t=1}^T$.
 
-In order to apply Bayesian inference, we should make an assumption about the joint distribution of the errors $\varepsilon_t$.  
-Different specifications of the errors distribution can lead to the selection of different models. 
-The normality assumption, which is often exploited due to the conjugacy properties, should be treated with caution because the tail behavior of the financial returns is different from the one imposed by Gaussian distribution.
-For this reason we fit a multivariate Student-t distribution that accounts for fat tails specific to the returns. 
-As we want to remain agnostic about the shape of the distribution, we explore multiple distributions from the same family with different degrees of freedom and let the data determined the best one.
-
-Suppose now that the errors follow a multivariate Student-t distribution: 
+In order to apply Bayesian inference, we need to specify the distribution of the errors. 
+Because asset returns are typically thought to be heavy-tailed our models will be based on a multivariate Student-t distribution in which we will allow the data to choose the degrees of freedom.\footnote{Our model selection exercise below will also consider a Gaussian error distribution although this specification is soundly rejected by the data.}
+We have:
 \begin{equation*}
 \boldsymbol{\varepsilon}_{t}\sim t_{D,\nu }\left( 0,\Omega \right)
 \end{equation*}
 where $\nu$ denotes the degrees of freedom of the distribution, the location parameter is zero and the scale matrix is $\Omega$.
 If $\nu >1$ then $E(\boldsymbol{\varepsilon}) = 0$. 
-If $\nu>2$ then $Var\left( \boldsymbol{\varepsilon} \right) = \nu \Omega/(\nu-2)$. \\
+If $\nu>2$ then $Var\left( \boldsymbol{\varepsilon} \right) = \nu \Omega/(\nu-2)$. 
 The SUR model lets us explicitly explore the cross-sectional dependence of errors by jointly fitting the model for all assets. 
 The possible variance linkages between different assets are captured by the scale matrix $\Omega$. 
-While acknowledging the importance of these linkages and the possible influence they may have on the model selection, we have little understanding about their nature and thus should avoid imposing rigid assumptions. 
-Careful treatment of the covariance matrix $\Omega$ and its inverse $\Omega^{-1}$ allows us to infer the covariance structure of errors from the data.
+While acknowledging the importance of these linkages and the possible influence they may have on the model selection, we avoid placing \emph{a priori} restrictions on this matrix, such as assuming that it is diagonal, and instead infer the covariance structure of errors from the data.
 
-\subsection{A Hierarchical Representation}
-Replacing the normal likelihood with the Student-t likelihood, however, breaks the conditional conjugacy that is usually exploited to construct an MCMC algorithm based on the Gibbs sampler.
-The solution to this problem is to work with a hierarchical representation in which the Student-t likelihood is introduced as a scale mixture of normal distributions (\cite{chib1995hierarchical}), in particular
+To permit use to make posterior draws from the Gibbs sampler, we use representation of the Student-t distribution as a scale mixture of normal distributions, as in \cite{chib1995hierarchical}.
+In particular,
 \begin{align*}
 \boldsymbol{\varepsilon}_{t}|\lambda _{t} &\sim N\left( 0,\lambda _{t}^{-1}\Omega \right)
 \\

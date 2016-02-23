@@ -14,12 +14,12 @@ Stepwise selection, whether based on a t-statistic or related statistics, ignore
 As such it can perform poorly in practice and does not necessarily select the best model in the limit: it is not asymptotically consistent.\footnote{See, for example \cite{judd2011data}.}
 Second, with so many models under consideration, there is a serious danger of over-fitting.
 Indeed, as suggested by \cite{harvey2015and}, many of the novel factors identified in recent years may well be spurious.
-To avoid this problem, any proposed selection procedure should account for the high-dimensional nature of factor selection problem by appropriately penalizing more complex models relative to simpler ones.
+To avoid this problem, any proposed selection procedure should account for the high-dimensional nature of the factor selection problem by appropriately penalizing more complex models relative to simpler ones.
 
-In this paper we take both of these observations to heart and use monthly observations for twelve leading asset pricing factors and ten industry portfolios to carry out an exhaustive search over 49,152 asset pricing specifications based on a seemingly unrelated regression (SUR) model with Student-t errors.
+In this paper we take both of these observations to heart, using monthly observations for twelve leading asset pricing factors and ten industry portfolios to carry out an exhaustive Bayesian comparison of 49,152 asset pricing specifications based on a seemingly unrelated regression (SUR) model with Student-t errors.
 Ten of the factors used in our exercise are used by \cite{harvey2015lucky} while two others are drawn from different sources.
 Our model comparisons are based on the calculation of Bayesian marginal likelihoods, using the method of \cite{chib1995marginal}.
-Marginal likelihoods automatically penalize models based on complexity, assuring that models with more factors will not rank higher merely because their greater flexibility allows them to fit the noise in the data. 
+Marginal likelihoods automatically penalize models based on complexity, assuring that those with more factors will not rank higher merely because their greater flexibility allows them to fit the noise in the data. 
 Moreover, model selection based on the comparison of marginal likelihoods has attractive asymptotic properties.
 If the true model is among the candidates under consideration, marginal likelihood comparisons will select it with probability approaching one in the limit; if it is not among the candidates, they will select the model that is closest to the truth.
 As we show in a calibrated simulation example, marginal likelihood comparisons also perform well in finite samples.
@@ -31,27 +31,26 @@ By comparing identical specifications with and without an intercept, we can dete
 Unlike the p-value from a frequentist hypothesis test, which is a probability calculated \emph{under} the assumption that the theory is correct, our Bayesian approach can be used to determine how much more probable it is \emph{that} the theory is correct than that it is not.
 
 Marginal likelihood comparisons require the specification of proper priors.
-Given the large number of parameters in our SUR model
-
-the subset models are essentially special cases of a seemingly unrelated regression (SUR) model with the same subset of factors on the right-hand side but with different asset-specific factor coefficients, and a jointly distributed vector error with an unknown precision matrix. Restricting ourselves to 12 factors (10 from \cite{harvey2015lucky} and 2 additional ones), 
-  and an intercept which can be present or absent in each possible case, leads to $2^{13}$ possible SUR models, which along with 6 different assumptions about the error distribution, amounts to the comparison of 49152 SUR models.
-  
-Our next innovation is to utilize a carefully crafted Bayesian approach to implement the comparison of these disparate models. Careful in this context means that the prior distribution is not placed independently on each factor, since we recognize that the meaning and importance of the factor coefficients and the error precision matrix vary by model. 
-Each of the required 49152 different prior distributions are specified in an automatic and importantly, objective fashion, by employing a small training sample that precedes our estimation sample. 
-Careful also refers to the use of a SUR type model in which error distribution and error precision are also viewed as unknowns that have to be inferred.
-
-
+Because the meaning and importance of factor coefficients vary by model, however, it would be inappropriate to place priors independently on each factor.
+The same is true for the error precision matrix, which we estimate without restriction from the data rather than, say, restricting to be diagonal: its meaning, too, depends on the model.
+To specify 49,152 priors in an automatic and objective way, we employ a small training sample that precedes our estimation sample.
 
 Our paper adds to the growing literature on the use of Bayesian techniques in finance.
 \cite{avramov2002stock} and \cite{cremers2002stock}, for example, use Bayesian model-averaging to explore the question of market-return predictability with multiple predictors, while \cite{shanken1987bayesian}, \cite{harvey1990bayesian} and \cite{avramov2006exact} take a Bayesian approach to consider the question of the significance (or lack thereof) of the intercept in the CAPM context, providing a Bayesian alternative to the frequentist test of this hypothesis developed by \cite{gibbons1989test}.
 
+Our main results are as follows.
+A number of similar factor models find support from the data and are difficult to distinguish empirically: in particular our top four models are practically identical in terms of their marginal likelihoods and differ only slightly in the factors that they contain.
+All of the top twenty models have a Student-t error distribution with 6 or 8 degrees of freedom and include four of the Fama-French \citep{fama1993common,fama2015five} five factors -- namely the market, value (HML), profitability (RMW) and investment (CMA) factors -- along with momentum \citep{carhart1997persistence} and quality \citep{asness2014quality}.
+In contrast, the liquidity factor of \cite{stambaugh2003liquidity} does not appear in any of the top models.
+Intriguingly, our top model includes \emph{two} profitability factors -- the Fama-French RMW factor in addition to ROE, the probability factor suggested by \cite{hou2014digesting} -- and two size factors: the Fama-French HML factor and an alternative version HMLdev proposed by \cite{asness2013devil}. 
+While these pairs of factors are closely related, they appear to be capturing enough different information to be useful in concert.
+Our top-rated model does not include a constant. 
+Comparing its marginal likelihood to that of an otherwise identical specification \emph{with} a constant, we find a difference of approximately 0.86 on the $\log_{10}$ scale. 
+In other words, the model without a constant is just under ten times more plausible \emph{a posteriori} than the model with a constant.
+Based on these results we would \emph{not} have reason to reject the theoretical prediction of the factor pricing model for our selected model.
 
-\todo[inline]{Talk about results here!}
-
-The rest of the paper unfolds as follows.
-Section 1 describes the model with Student-t errors and the estimation framework. 
-Section 2 provides a simulation example to motivate our research.
-Section 4 describes the main results. 
-Finally, section 5 concludes. 
+The remainder of the paper is organized as follows. 
+Section 2 describes the model with Student-t errors and the estimation framework while Section 3 provides a simulation example to motivate our approach.
+Section 4 describes our main empirical results and Section 5 concludes.
 %Results for the model with normal errors and general description of the three block sampler can be found in the Appendix.
 

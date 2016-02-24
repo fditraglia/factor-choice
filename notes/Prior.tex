@@ -1,0 +1,128 @@
+\documentclass[12pt]{article}
+\usepackage{enumerate, hyperref}
+\usepackage{amsmath, amssymb}
+\usepackage[margin=1.1in]{geometry}
+\linespread{1.2}
+
+
+
+\begin{document}
+
+
+\section{Priors}
+
+The procedure consists of two steps:
+\begin{enumerate}
+	\item Estimate the model for the training sample
+	\item Estimate the model for the remainder of the sample using the draws from the first step to form a prior
+\end{enumerate}
+Both for Student $t$ and normal errors we specify two prior distributions: for the coefficients $\gamma \sim \mathcal{N}_{p}\left( \boldsymbol{\gamma} |\boldsymbol{\gamma_{0}},G_{0}\right)$ and for the precision matrix $\Omega^{-1} \sim \mathcal{W}_{D}  \left(\Omega ^{-1}|\rho_{0}, R_{0}\right) $. Parameters for the two distributions are specified differently for each step.
+
+
+\subsection{Step 1}
+Regression coefficients:
+\begin{eqnarray*}
+	\gamma_{0} &=& 0 \\ 
+	G_{0} &=& C_{1}^{2}I_{p} 
+\end{eqnarray*}
+The prior distribution of the coefficient vector is centered around zero. The covariance matrix is assumed to be diagonal. We use the value $C_{1} = 2$. \\
+Precision matrix:
+\begin{eqnarray*}
+	\rho_{0} &=& d + 8 \\ 
+	R_{0} &=& \frac{1}{C_{2}^{2} (\rho_{0}-d-1)}I_{d}
+\end{eqnarray*}
+The mean value of $\Omega$ implied by the prior is a diagonal matrix $C_{2}^{2}I_{d}$ . We set $C_{2} = 0.05$.\\
+\subsection{Step 2}
+Here we use the draws based on the training sample to construct priors. Denote posterior means of draws of $gamma$ as $\overline{\gamma}$ and the sample covariance matrix as $\widehat{G}$. We also calculate a posterior mean of the $\Omega^{-1}$ draws: $\overline{\Omega}^{-1}$.\\
+Regression coefficients :
+\begin{eqnarray*}
+	\gamma_{0} &=& \overline{\gamma} \\ 
+	G_{0} &=& C_{3}^{2} \widehat{G}
+\end{eqnarray*}\\
+The prior is centered around the posterior mean of the first step draws. The standard deviation is based on the sample standard deviation of the first stage draws adjusted by the factor of $C_{3}$ to reflect uncertainty. We set $C_{3} = 3$.\\
+Precision matrix:
+\begin{eqnarray*}
+	\rho_{0} &=& d + C_{4} \\ 
+	R_{0} &=& \frac{1}{\rho - d - 1} \overline{\Omega}^{-1}
+\end{eqnarray*}
+The prior is constructed to set the mean equal to the posterior mean of $\Omega^{-1}$ based on the training sample. One way of widening the prior would be to decrease number of degrees of freedom $\rho_{0}$ by adjusting the value of $C_4$. Currently we use $C_4$ = 6.
+
+
+\section{Motivational Simulation}
+In order to motivate our research we simulate asset returns and demonstrate that the true model is selected. The returns are assumed to be follow the famous Fama-French 3 factor(Mkt.RF, HML and SMB) structure without intercept. The standard errors follow Student-t distribution with 4 degrees of freedom. The simulation is based on posterior means obtained when fitting the model to the real data. Other parameters are the same as in the original sample. The pool of candidate models includes all combinations of Fama-French 5 factors(Mkt.RF, HML, SMB, RMW and CMA) and a constant. Considered distributions include normal and Student-t with 3, 4, 6, 8 and 12 degrees of freedom. We fit in total $6\times 2^{6} = 384$ model.  \\
+The simulation setup is described below:
+\begin{enumerate}
+	\item Fit the Fama-French 3 factor model without an intercept to 10 value-weighted industry portfolios using the full sample. The errors are assumed to follow Student-t distribution with 4 degrees of freedom. 
+	\item Simulate a dataset assuming the true parameters  $\gamma$ and $\Omega^{-1} $ to be equal to the posterior means:
+	\begin{itemize}
+		\item Simulate errors:
+		 \begin{equation*}
+		 \boldsymbol{\varepsilon}^s_{t}\sim t_{10,4 }\left( 0,\Omega \right)
+		 \end{equation*}
+		\item Simulate returns using values of Fama-French 3 factors observed in the data:
+		\begin{equation*}
+		\mathbf{y}_t^s = X_t \boldsymbol{\gamma} + \boldsymbol{\varepsilon}^s_t
+		\end{equation*}
+	\end{itemize}
+	\item Estimate all candidate models and evaluate the likelihood. Run the usual two step estimation procedure using the training sample to construct priors for each model.  
+\end{enumerate}
+
+
+\begin{table}[]
+	\centering
+	\begin{tabular}{cccccc}
+		Factor & Student$_{3}$ & Student$_{4}$ & Student$_{6}$ & Student$_{12}$ & Normal \\ 
+		\hline
+		constant &  &  &  &  &  \\ 
+		Mkt.RF & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark \\ 
+		SMB & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark \\ 
+		HML & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark \\ 
+		RMW &  &  &  &  &  \\ 
+		CMA &  &  &  &  &  \\ 
+		\hline
+		log Likelihood & 10027.7 & 10361.34 & 10276.61 & 10028.09 & 10102.35 \\ 
+	\end{tabular}
+\end{table}
+As can be seen from the table above that lists the factors of the best model for each distribution, the true model is always selected. \\
+
+This table show the best three models based on Student-t errors with 4 degrees of freedom (the true distribution).
+\begin{table}[ht]
+	\centering
+	\begin{tabular}{cccc}
+		Factor & Model 1 & Model 2 & Model 3 \\ 
+		\hline
+		constant &  &  & \checkmark \\ 
+		Mkt.RF & \checkmark & \checkmark & \checkmark \\ 
+		SMB & \checkmark & \checkmark & \checkmark \\ 
+		HML & \checkmark & \checkmark & \checkmark \\ 
+		RMW &  & \checkmark &  \\ 
+		CMA &  &  &  \\ 
+		\hline
+		log Likelihood & 10027.7 & 10264.24 & 10263.19 \\ 
+	\end{tabular}
+\end{table} \\
+
+Example of a table for the big run:
+\begin{table}[ht]
+	\centering
+	\begin{tabular}{cccc}
+		Factor & Student$_{4}$ & Student$_{12}$ & Normal \\ 
+		\hline
+		constant &  &  &  \\ 
+		LIQv &  &  &  \\ 
+		MOM & \checkmark & \checkmark & \checkmark \\ 
+		Mkt.RF & \checkmark & \checkmark & \checkmark \\ 
+		SMB &  &  & \checkmark \\ 
+		HML & \checkmark & \checkmark & \checkmark \\ 
+		RMW & \checkmark & \checkmark & \checkmark \\ 
+		CMA & \checkmark & \checkmark & \checkmark \\ 
+		QMJ & \checkmark & \checkmark & \checkmark \\ 
+		ME & \checkmark & \checkmark & \checkmark \\ 
+		IA &  &  &  \\ 
+		ROE & \checkmark & \checkmark & \checkmark \\ 
+		HMLDev &  &  & \checkmark \\ 
+		\hline
+		log Likelihood & 9684.65 & 9669.05 & 9517.35 \\ 
+	\end{tabular}
+\end{table}
+\end{document}

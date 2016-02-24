@@ -1,0 +1,478 @@
+\documentclass[12pt]{article}
+\usepackage{enumerate, hyperref}
+\usepackage{amsmath, amssymb}
+\usepackage[margin=1.1in]{geometry}
+\linespread{1.2}
+\usepackage{multirow}
+\usepackage{apacite} %apa citation style
+\bibliographystyle{apacite}
+
+\begin{document}
+\section{Abstract}
+In this paper we revisit one of the classic questions in empirical finance: which factors in
+combination are useful for explaining the time-series and cross-section behavior of 
+equity and portfolio returns. The contribution of this paper is to evaluate this question
+from a Bayesian perspective recognizing that proper evaluation of the worth of a factors
+has to be in the context of models with and without other factors. Answering such a question 
+therefore requires the consideration of all possible subset models, where the subset models
+are essentially special cases of a seemingly unrelated regression (SUR) model with the same 
+subset of factors on the right-hand side but with different asset-specific factor coefficients,
+and a jointly distributed vector error with an unknown precision matrix. 
+In the case of a leading set of 12 factors (along with the intercept which can be present or absent in 
+each possible case), this leads to $2^13$ possible SUR models, which along with 6 different assumptions 
+about the error distribution, amounts to the comparison of 49152 SUR models.  We carefully compare these 
+models with the help of objectively constructed priors (one for each of our models) using a 
+training sample, and with the calculation of marginal likelihoods (computed by the method of \cite{chib1995marginal}). 
+Marginal likelihoods are proportional to the posterior probability of each model and have recognized
+finite sample and asymptotic properties. In particular, marginal likelihoods include a penalty for complexity
+(in other words models with more factors do not necessarily gather greater support) and asymptotically
+pick either the true model (if it is in the class being considered) or find the model that is closet to the 
+true model (if it is not in the class being considered). Our comparison focuses on test assets from
+the current literature on this topic: a collection of 10 asset portfolios and a
+collection of 10 equities. Our results show ..
+\section{Introduction}
+\section{Model and Framework}
+Consider a linear $K$-factor model for $D$ assets of the form
+\begin{equation*}
+y_{it}=\alpha _{d} + \mathbf{f}_{t}' \boldsymbol{\beta}_d + \varepsilon_{it}
+\end{equation*}
+where $d = 1, \hdots, D$ and $t = 1, \hdots, T$ and $\mathbf{f}_{t}'=\left(f_{t1}, \hdots,f_{tK}\right)$ is a $K\times1$ vector.
+This is a special case of the seemingly unrelated regression (SUR) model in which the regressors are \emph{identical} across equations.
+Stacking observations for a given time period across assets, define $\mathbf{y}_t' = (y_{1t}, \hdots, y_{Dt})$ and analogously $\boldsymbol{\varepsilon}_t' = \left( \varepsilon_{t1}, \hdots \varepsilon_{tD} \right)$.
+Now let $\mathbf{x}_t' = (1, \mathbf{f}_t')$ and $\boldsymbol{\gamma}_d' = (\alpha_d, \boldsymbol{\beta}_d')$ so we have
+\begin{equation*}
+\mathbf{y}_t = X_t \boldsymbol{\gamma} + \boldsymbol{\varepsilon}_t
+\end{equation*}
+where $X_t = I_D \otimes \mathbf{x}_t'$ and $\boldsymbol{\gamma}'= \left( \boldsymbol{\gamma}_1', \hdots, \boldsymbol{\gamma}_D' \right)$. 
+Now, suppose that 
+\begin{equation*}
+\boldsymbol{\varepsilon}_t|\mathbf{x}_t \sim \mbox{ iid } \mathcal{N}_D(0, \Omega)
+\end{equation*}
+Let $Y_T$ denote the full data sample, i.e.\ $\left\{ \mathbf{y}_t, \mathbf{x}_t \right\}_{t=1}^T$.
+Then the likelihood is 
+\begin{equation*}
+\pi(Y_T|\boldsymbol{\gamma},\Omega^{-1}) \propto |\Omega^{-1}|^{T/2} \exp\left[ -\frac{1}{2} \sum_{t=1}^T \left(\mathbf{y}_t - X_t \boldsymbol{\gamma} \right)' \Omega^{-1} \left(\mathbf{y}_t - X_t \boldsymbol{\gamma} \right)\right]
+\end{equation*}
+where we parameterize this problem in terms of the $D\times D$ \emph{precision} matrix $\Omega^{-1}$ and the $p\times1$ vector of regression coefficients $\boldsymbol{\gamma}$, where $p = D(K+1)$.
+\subsection{Gibbs Sampler with Normal Errors}
+\subsubsection{Prior and Posterior Distribution}
+To complete the model we specify the following prior distribution
+\begin{equation*}
+\pi (\boldsymbol{\gamma},\Omega^{-1})=\mathcal{N}_{p}\left( \boldsymbol{\gamma} |\boldsymbol{\gamma_{0}},G_{0}\right)
+\mathcal{W}_{D}\left(\Omega ^{-1}|\rho_{0}, R_{0}\right)
+\end{equation*}
+This prior is conditionally conjugate with the normal likelihood.
+In particular, we have 
+$\boldsymbol{\gamma}|\Omega^{-1},Y_T \sim \mathcal{N}_p\left( \bar{\boldsymbol{\gamma}},G_T \right)$
+where
+\begin{eqnarray*}
+	G_T &=& \left[ G_0^{-1} + \sum_{t=1}^T X_t' \Omega^{-1} X_t \right]^{-1}\\
+	\bar{\boldsymbol{\gamma}} &=& G_T \left[ G_0^{-1}\boldsymbol{\gamma}_0 + \sum_{t=1}^{T} X_t'\Omega^{-1}\mathbf{y}_t \right]
+\end{eqnarray*}
+and
+$\Omega^{-1}|Y_T \sim \mathcal{W}_D\left(\rho_0 + T, R_T \right)$
+where
+\begin{equation*}
+R_T = \left[ R_0^{-1} + \sum_{t=1}^{T} \left( \mathbf{y}_t - X_t \boldsymbol{\gamma} \right)\left( \mathbf{y}_t - X_t \boldsymbol{\gamma} \right)' \right]^{-1}
+\end{equation*}
+
+\subsubsection{MCMC}
+Using the full set of conditional posteriors, given in the preceding section, we can simulate from the joint posterior for this model using a Gibbs sampler:
+\begin{enumerate}
+	\item Select a starting value $\Omega^{-1(0)}$ for the precision matrix.
+	\item Draw $\boldsymbol{\gamma}^{(1)} \sim \mathcal{N}\left( \bar{\boldsymbol{\gamma}}^{(1)}, G_T^{(1)}\right)$ where
+	\begin{eqnarray*}
+		G_T^{(1)} &=& \left[ G_0^{-1} + \sum_{t=1}^T X_t' \Omega^{-1(0)} X_t \right]^{-1}\\
+		\bar{\boldsymbol{\gamma}}^{(1)} &=& G_T^{(1)} \left[ G_0^{-1}\boldsymbol{\gamma}_0 + \sum_{t=1}^{T} X_t'\Omega^{-1(0)}\mathbf{y}_t \right]
+	\end{eqnarray*}
+	\item Draw $\Omega^{-1(1)} \sim \mathcal{W}_D\left(\rho_T, R_T^{(1)}\right)$ where
+	\begin{equation*}
+	R_T^{(1)} = \left[ R_0^{-1} + \sum_{t=1}^{T} \left( \mathbf{y}_t - X_t \boldsymbol{\gamma}^{(1)} \right)\left( \mathbf{y}_t - X_t \boldsymbol{\gamma}^{(1)} \right)' \right]^{-1}
+	\end{equation*}
+	\item Repeat the preceding two steps a total of $G$ times.
+	In the $g$th iteration:
+	\begin{enumerate}[(i)]
+		\item Draw $\boldsymbol{\gamma}^{(g)} \sim \mathcal{N}\left( \bar{\boldsymbol{\gamma}}^{(g)}, G_T^{(g)}\right)$ where
+		\begin{eqnarray*}
+			G_T^{(g)} &=& \left[ G_0^{-1} + \sum_{t=1}^T X_t' \Omega^{-1(g-1)} X_t \right]^{-1}\\
+			\bar{\boldsymbol{\gamma}}^{(g)} &=& G_T^{(g)} \left[ G_0^{-1}\boldsymbol{\gamma}_0 + \sum_{t=1}^{T} X_t'\Omega^{-1(g-1)}\mathbf{y}_t \right]
+		\end{eqnarray*}
+		\item Draw $\Omega^{-1(g)} \sim \mathcal{W}_D\left(\rho_T, R_T^{(g)}\right)$ where
+		\begin{equation*}
+		R_T^{(g)} = \left[ R_0^{-1} + \sum_{t=1}^{T} \left( \mathbf{y}_t - X_t \boldsymbol{\gamma}^{(g)} \right)\left( \mathbf{y}_t - X_t \boldsymbol{\gamma}^{(g)} \right)' \right]^{-1}
+		\end{equation*}
+	\end{enumerate}
+	\item Discard the first $B$ draws.
+\end{enumerate}
+Note that in iteration $g$, $G_T^{(g)}$ and $\bar{\boldsymbol{\gamma}}^{(g)}$ are calculated using $\Omega^{-1(g-1)}$ while $R_T^{(g)}$ is calculated using $\boldsymbol{\gamma}^{(0)}$.
+This is because we choose to initialize the sample with a starting value $\Omega^{-1(0)}$ for the precision matrix rather than for the vector of regression coefficients.
+\subsubsection{Calculating the Marginal likelihood}
+We calculate the marginal likelihood using the method of Chib (1995).
+Let $\theta$ denote the full collection of parameters.
+By Bayes' Rule
+\begin{equation*}
+\pi\left( \theta | Y_T \right) = \frac{\pi(\theta)f(Y_T|\theta)}{f(Y_T)}  
+\end{equation*}
+where $f(Y_T)$ is the marginal likelihood, aka the marginal data density, aka the evidence.
+This identity holds true for \emph{any} value of $\theta$.
+In particular it holds at the posterior mean $\theta^*$.
+Solving for $f(Y_T)$ and evaluating the result at $\theta^*$, we have 
+\begin{equation*}
+f\left(Y_T \right) = \frac{\pi(\theta^*)f(Y_T|\theta^*)}{\pi(\theta^*|Y_T)}  
+\end{equation*}
+Thus, we can express the \emph{log} marginal likelihood as
+\begin{equation*}
+\log f(Y_T) = \log \pi(\theta^*) + \log f\left( Y_T|\theta^* \right) - \log \pi\left( \theta^*|Y_T \right)
+\end{equation*}
+Specializing this to the SUR model considered above,
+\begin{equation*}
+\log f(Y_T) = \log \pi(\boldsymbol{\gamma}^*) + \log \pi\left( \Omega^{-1*} \right) + \log f\left( Y_T|\boldsymbol{\gamma}^*, \Omega^{-1*} \right) - \log \pi\left( \boldsymbol{\gamma}^*, \Omega^{-1*}|Y_T \right)
+\end{equation*}
+since our priors over $\boldsymbol{\gamma}$ and $\Omega^{-1}$ are independent.
+The Chib (1995) method approximates $\log f(Y_T)$ by evaluating each of the terms on the right-hand-side of the preceding expression using the output of the Gibbs sampler.
+
+\paragraph{The Contribution of the Prior}
+Evaluating the first two terms, $\log \pi(\boldsymbol{\gamma}^*)$ and $\log \pi\left( \Omega^{-1*} \right)$, is easy: these are simply the priors for $\boldsymbol{\gamma}$ and $\Omega^{-1}$ evaluated at the posterior means.
+We take the sample average of the Gibbs draws to approximate $\boldsymbol{\gamma}^*$ and $\Omega^{-1*}$ and evaluate the Normal and Wishart distributions at these points, with parameters given by the prior:
+\begin{eqnarray*}
+	\pi\left( \boldsymbol{\gamma}^* \right) &=& \mathcal{N}_p\left( \boldsymbol{\gamma}^* | \boldsymbol{\gamma}_0, G_0 \right)\\
+	\pi\left( \Omega^{-1*} \right) &=& \mathcal{W}_D\left( \Omega^{-1*}|\rho_0, R_0 \right)
+\end{eqnarray*}
+
+\paragraph{The Contribution of the Likelihood}
+Above we assumed a normal distribution for the regression errors, specifically, $\boldsymbol{\varepsilon}_t|\mathbf{x}_t \sim \mbox{ iid } \mathcal{N}_D(0,\Omega)$.
+From the regression specification it follows that $\mathbf{y}_t \sim \mbox{ iid } \mathcal{N}_D\left(X_t \boldsymbol{\gamma}, \Omega\right)$ and thus the log likelihood evaluated at the posterior mean is
+\begin{equation*}
+\log f(Y_T| \boldsymbol{\gamma}^*,\Omega^{-1*}) = \sum_{t=1}^{T} \log{ \mathcal{N}_D \left(\mathbf{y}_t|X_t \boldsymbol{\gamma}^*, \Omega^{-1*}\right)}
+\end{equation*}
+parameterized in terms of the precision matrix rather than the covariance matrix.
+Equivalently, but more conveniently, we may write
+\begin{equation*}
+\log f(Y_T| \boldsymbol{\gamma}^*,\Omega^{-1*}) = \sum_{t=1}^{T} \log{ \mathcal{N}_D \left(\mathbf{y}_t -X_t \boldsymbol{\gamma}^*|\mathbf{0}, \Omega^{-1*}\right)}
+\end{equation*}
+The advantage of this version of the likelihood is that the parameters of the normal density are constant over $t$, allowing us to exploit the efficient algorithm for repeatedly evaluating a MV normal density with fixed parameters, described above.
+Note that we can simultaneously calculate all of the arguments for the normal density as follows:
+\begin{equation*}
+(\widetilde{Y} - \widetilde{X} \Gamma^*)'= (\boldsymbol{\varepsilon}^{*})' = \left[
+\begin{array}{ccc}
+\boldsymbol{\varepsilon}_1^* &
+\hdots &
+\boldsymbol{\varepsilon}_T^*
+\end{array}\right]
+\end{equation*}
+where $\boldsymbol{\varepsilon}_t^* = \mathbf{y}_t - X_t \boldsymbol{\gamma}^*$ and $\Gamma^* = \left( \boldsymbol{\gamma}_1^*, \hdots,  \boldsymbol{\gamma}_D^*\right)$.
+
+\paragraph{The Contribution of the Posterior}
+To evaluate the third term, we factorize the joint posterior as the product of a conditional and marginal, namely:
+\begin{equation*}
+\pi\left( \boldsymbol{\gamma}^*, \Omega^{-1*}|Y_T \right) = \pi\left( \boldsymbol{\gamma}^*|\Omega^{-1*},Y_T \right) \times \pi\left( \Omega^{-1*}|Y_T \right)
+\end{equation*}
+so that we have
+\begin{equation*}
+\log \pi\left( \boldsymbol{\gamma}^*, \Omega^{-1*}|Y_T \right) = \log \pi\left( \boldsymbol{\gamma}^*|\Omega^{-1*},Y_T \right) + \log \pi\left( \Omega^{-1*}|Y_T \right)
+\end{equation*}
+Because we have \emph{analytical expressions} for the conditional posteriors in this model we can evaluate the first term in the product immediately.
+We have $\boldsymbol{\gamma}|\Omega^{-1} \sim \mathcal{N}_p\left( \boldsymbol{\gamma}|\bar{\boldsymbol{\gamma}}, G_T \right)$ where $G_T$ and $\bar{\gamma}$ depend only on the prior, the data, and $\Omega^{-1}$.
+To perform the required calculation, we simply evaluate the normal density at $\boldsymbol{\gamma}^*$ and evaluate $G_T$ and $\bar{\gamma}$ at $\Omega^{-1*}$, that is:
+\begin{equation*}
+\pi\left( \boldsymbol{\gamma}^*|\Omega^{-1*}, Y_T \right) = \mathcal{N}_p\left( \boldsymbol{\gamma}^*|\bar{\gamma}^*, G_T^{-1*}\right)
+\end{equation*}
+where
+\begin{eqnarray*}
+	G_T^{-1*} &=& \left[ G_0^{-1} + \sum_{t=1}^T X_t' \Omega^{-1*} X_t \right] = \left[ G_0^{-1} + \Omega^{-1*} \otimes \widetilde{X}'\widetilde{X} \right]\\
+	\bar{\boldsymbol{\gamma}}^* &=& G_T^* \left[ G_0^{-1}\boldsymbol{\gamma}_0 + \sum_{t=1}^{T} X_t'\Omega^{-1*}\mathbf{y}_t \right] = \mbox{solve}\left[G_T^{-1*},\;  G_0^{-1}\gamma_0 + \mbox{vec}\left( \widetilde{X}'\widetilde{Y}\Omega^{-1*} \right) \right]
+\end{eqnarray*}
+The evaluation of the second term in the product that gives the contribution of the posterior to the marginal likelihood is a bit more involved.
+We write
+\begin{eqnarray*}
+	\pi\left( \Omega^{-1*}|Y_T \right) &=&  \int \pi\left( \boldsymbol{\gamma},\Omega^{-1*}|Y_T \right) \; d\boldsymbol{\gamma}\\
+	&=& \int \pi\left( \Omega^{-1*}|\boldsymbol{\gamma}, Y_T \right)\pi\left( \boldsymbol{\gamma}|Y_T \right)\; d\boldsymbol{\gamma}
+\end{eqnarray*}
+and approximate the second integral using the draws from the Gibbs sampler:
+\begin{eqnarray*}
+	\pi\left( \Omega^{-1*}|Y_T \right) &\approx& \frac{1}{G}\sum_{g=1}^G \pi\left( \Omega^{-1*}|\boldsymbol{\gamma}^{(g)},Y_T \right)\\
+	&=& \frac{1}{G}\sum_{g=1}^G \mathcal{W}_D\left(\Omega^{-1*}\left|\rho_0 + T, R_T^{\left( g \right)}\right. \right) 
+\end{eqnarray*}
+where
+\begin{eqnarray*}
+	R_T^{(g)} &=&  \left[ R_0^{-1} + \sum_{t=1}^{T} \left( \mathbf{y}_t - X_t \boldsymbol{\gamma}^{(g)} \right)\left( \mathbf{y}_t - X_t \boldsymbol{\gamma}^{(g)} \right)' \right]^{-1}\\
+	&=& \left[  R_0^{-1} + \left( \widetilde{Y} - \widetilde{X} \Gamma^{(g)} \right)'\left( \widetilde{Y} - \widetilde{X} \Gamma^{(g)} \right)\right]^{-1}
+\end{eqnarray*}
+
+\subsection{Gibbs Sampler with Student-t Errors}
+
+\subsubsection{A Hierarchical Representation}
+Suppose now that the errors follow a multivariate Student-t distribution rather than a normal distribution: 
+\begin{equation*}
+\boldsymbol{\varepsilon}_{t}\sim t_{D,\nu }\left( 0,\Omega \right)
+\end{equation*}
+where $\nu$ denotes the degrees of freedom of the distribution, the location parameter is zero and the scale matrix is $\Omega$.
+If $\nu >1$ then $E(\boldsymbol{\varepsilon}) = 0$. 
+If $\nu>2$ then $Var\left( \boldsymbol{\varepsilon} \right) = \nu \sigma/(n-2)$.
+Replacing the normal likelihood from above with the Student-t likelihood, however, breaks the conditional conjugacy that we exploited above to construct an MCMC algorithm based on the Gibbs sampler.
+The solution to this problem is to work with a hierarchical representation in which the Student-t likelihood is introduced as a scale mixtrure of normal distributions (\cite{chib1995hierarchical}), in particular
+\begin{align*}
+\boldsymbol{\varepsilon}_{t}|\lambda _{t} &\sim N\left( 0,\lambda _{t}^{-1}\Omega \right)
+\\
+\lambda _{t} &\sim G\left( \frac{\nu }{2},\frac{\nu }{2}\right)
+\end{align*}
+where $G(\alpha,\beta)$ denotes the Gamma distribution with shape parameter $\alpha$ and rate parameter $\beta$.
+(See below for more discussion on the parameterization of the gamma distribution.)
+Using this representation, after conditioning on $\left( \nu, \boldsymbol{\lambda} \right)$, where $\boldsymbol{\lambda} = (\lambda_1, \dots \lambda_T)'$, we are essentially back in the familiar normal case from above.
+In any inference that we carry out, as well as in the calculation of the marginal likelihood, we will marginalize over $\boldsymbol{\lambda}$ by simply ignoring these draws.
+We will continue to place a normal prior on $\boldsymbol{\gamma}$ and a Wishart prior on $\Omega^{-1}$, exactly as we did when working with the normal likelihood above.
+
+\subsubsection{The Sampler}
+The sampler proceeds by fixing the degrees of freedom parameter $\nu$.
+If $\nu$ is to be chosen from the data, this can be accomplished using the marginal likelihood, as described below.
+Holding $\nu$ fixed, the full set of conditional posteriors is as follows:
+
+\paragraph{Regression Coefficients:} 
+$\boldsymbol{\gamma}|\Omega^{-1},Y_T \sim \mathcal{N}_p\left( \bar{\boldsymbol{\gamma}}_{\lambda},G_{T,\lambda} \right)$
+\begin{eqnarray*}
+	G_{T,\lambda} &=& \left[ G_0^{-1} + \sum_{t=1}^T \lambda_t X_t' \Omega^{-1} X_t \right]^{-1}\\
+	\bar{\boldsymbol{\gamma}}_{\lambda} &=& G_{T,\lambda} \left[ G_0^{-1}\boldsymbol{\gamma}_0 + \sum_{t=1}^{T}\lambda_t X_t'\Omega^{-1}\mathbf{y}_t \right]
+\end{eqnarray*}
+\paragraph{Inverse Scale Matrix:}
+$\Omega^{-1}|Y_T \sim \mathcal{W}_D\left(\rho_0 + T, R_{T,\lambda}\right)$
+\begin{equation*}
+R_{T,\lambda} = \left[ R_0^{-1} + \sum_{t=1}^{T} \lambda_t\left( \mathbf{y}_t - X_t \boldsymbol{\gamma} \right)\left( \mathbf{y}_t - X_t \boldsymbol{\gamma} \right)' \right]^{-1}
+\end{equation*}
+
+\paragraph{Auxiliary Parameter:} $\lambda_t|\boldsymbol{\gamma}, \nu, Y_T \sim G\left(\displaystyle \frac{\nu + D}{2}, \frac{\nu + \boldsymbol{\varepsilon}_t' \boldsymbol{\varepsilon}_t}{2} \right)$, $\boldsymbol{\varepsilon}_t = \mathbf{y}_t - X_t \boldsymbol{\gamma}$
+
+To implement the Gibbs sampler, we simply need to draw sequentially from these distributions, in the order given above. 
+We will require, however, starting values for both $\Omega^{-1}$ and each of the $\lambda_t$ parameters. 
+A reasonable starting value for $\lambda_t$ is one, which makes the initial draws for the regression coefficients and the inverse scale matrix the same as if were work withing with the normal model.
+
+\subsubsection{Marginal Likelihood for Student-t Model}
+First we describe the method for an arbitrary three-block Gibbs sampler. 
+We will use the idea of a ``reduced run'' introduced here in our calculation of the marginal likelihood of the Student-t model.
+\paragraph{General Three-Block Algorithm} 
+Re-arranging Bayes' Rule we have the identity
+\begin{equation*}
+f(y) = \frac{f(y|\theta_1^*, \theta^*_2, \theta_3^*)\pi\left( \theta^*_1, \theta^*_2, \theta^*_3 \right)}{\pi\left( \theta_1^*, \theta_2^*, \theta_3^*|y \right)}
+\end{equation*}
+for any specified values $(\theta_1^*, \theta_2^*, \theta_3^*)$ of the parameters.
+In particular this holds at the \emph{posterior mean} which is where we will evaluate the expression.
+Hence, the \emph{log} marginal likelihood is given by
+\begin{equation*}
+\log{f(y)} =  \log \pi\left( \theta^*_1, \theta^*_2, \theta^*_3 \right) + \log{f(y|\theta^*_1, \theta^*_2, \theta^*_3}) - \pi\left( \theta^*_1, \theta^*_2, \theta^*_3|y \right)
+\end{equation*}
+The first two terms are easy: we simply evaluate the log of the prior and likelihood at the posterior mean for the three parameters.
+The third one, however, is more complicated.
+To calculate it we use the factorization:
+\begin{equation*}
+\pi\left( \theta^*_1, \theta^*_2, \theta^*_3|y \right) = \pi(\theta^*_1|y) \pi\left( \theta^*_2|\theta^*_1,y \right)\pi\left( \theta^*_3|\theta^*_2, \theta^*_1,y \right)
+\end{equation*}
+This leaves us with three a product of new terms that we need to calculate.
+The last of the terms in the product, $\pi(\theta^*_3|\theta^*_2, \theta^*_1, y)$ is immediately available: this conditional density is known since we used it as a step in the Gibbs sampler.
+All we need to do is substitute in the appropriate values for $\theta^*_2,\theta^*_1$ and evaluate the density at $\theta^*_3$.
+To calculate the first term in the product we need to marginalize over $\theta_2, \theta_3$.
+A Monte-Carlo approximation to the appropriate integral can be computed directly from the Gibbs sampler output:
+\begin{equation*}
+\widehat{\pi}\left( \theta^*_1|y \right) = \frac{1}{G}\sum_{g=1}^{G} \pi\left( \theta^*_1|\theta_2^{(g)}, \theta_3^{(g)}, y \right)
+\end{equation*}
+To do this we rely on the fact that $\pi(\theta_1|\theta_2, \theta_3, y)$ is a known density -- we use it in the Gibbs sampler.
+The middle term in the product is the most difficult one to calculate.
+To begin, notice that
+\begin{equation*}
+\pi\left( \theta^*_2|\theta^*_1, y \right) = \int \pi(\theta^*_2, \theta_3|\theta_1^*,y) \; d\theta_3 = \int \pi(\theta_2^*|\theta^*_1, \theta^*_3,y)\pi(\theta_3|\theta^*_1,y) \; d\theta_3
+\end{equation*}
+The idea is to construct a Monte-Carlo approximation of the integral on the right-hand-side of the preceding expression.
+The approximation we use is
+\begin{equation*}
+\hat{\pi}\left( \theta_2^*|\theta^*_1,y \right) = \frac{1}{G} \sum_{g = 1}^G \pi(\theta_2^*|\theta_1^*, \theta_3^{(g)},y)
+\end{equation*}
+but the draws $\left\{ \theta_3^{(g)} \right\}$ come \emph{not} from the original run of the Gibbs sampler but from a so-called ``reduced run'' in which we sample $\theta_2^{(g)}$ and $\theta_3^{(g)}$ from $\pi(\theta_2|\theta_1^*,\theta_3, y)$ and $\pi(\theta_3|\theta_1^*,\theta_2,y)$.
+In other words, the reduced run holds $\theta_1$ \emph{fixed} at $\theta^*_1$, the posterior mean calculated from the draws of the \emph{usual} Gibbs sampler.
+We can carry out the reduced run using the exact same algorithm as we use for the full Gibbs sampler: we just need to keep $\theta^*_1$ fixed and make sure that we store the draws $\theta_3^{(g)}$ that we will need to calculate $\hat{\pi}(\theta^*_2|\theta_1^*,y)$.
+
+
+\paragraph{Calculations for the Student-t Model}
+For the SUR model we have
+\begin{equation*}
+\log f(Y_T) = \log \pi(\boldsymbol{\gamma}^*) + \log \pi(\Omega^{-1*}) + \log f(Y_T|\boldsymbol{\gamma}^*, \Omega^{-1*}) - \log \pi(\boldsymbol{\gamma}^*, \Omega^{-1*}|Y_T)
+\end{equation*}
+exactly as in the case with normal errors.
+This is because we still use the \emph{same prior}, under which $\boldsymbol{\gamma}$ and $\Omega^{-1}$ are independent.
+Moreover, note that $\lambda_t$ does not make a direct appearance.
+This is because we use it only as a way of obtaining conditional conjugacy: it is not a parameter over which we place a prior.
+The first two terms of this expression give the contribution of the prior to the marginal likelihood.
+These are computed in exactly the same way as above in the normal case.
+The third term gives the contribution of the likelihood.
+In the Student-t model we have $\varepsilon_{t}|\mathbf{x}_t \sim \mbox{iid } t_{D,\nu}(0, \Omega)$ and hence, from the regression specification, it follows that $\mathbf{y}_t \sim \mbox{iid } t_{D,\nu}(X_t \boldsymbol{\gamma},\Omega)$.
+Hence, evaluating the log-likelihood at the posterior mean gives
+\begin{equation*}
+\log f(Y_T| \boldsymbol{\gamma}^*,\Omega^{-1*}) = \sum_{t=1}^{T} \log{ t_{D,\nu} \left(\mathbf{y}_t|X_t \boldsymbol{\gamma}^*, \Omega^{-1*}\right)}
+\end{equation*}
+where we parameterize in terms of $\Omega^{-1}$ instead of $\Omega$ since this is how our C++ function for the Student-t density is specified.
+From here, the calculation is identical to the case for the normal model except with a Student-t density in place of a normal.\footnote{In particular, it's still convenient to work with the likelihood in terms of $\varepsilon_t$ rather than $\mathbf{y}_t$ and we have a way to simultaneously evaluate the likelihood contribution for each observation using our C++ routine for the Student-t density. See above for more details.}
+
+It is the \emph{final} term in the log marginal likelihood expression, the contribution of the posterior, whose computation is substantially different for the case of the Student-t model.
+We factorize the contribution of the posterio according to:
+\begin{equation*}
+\log \pi(\boldsymbol{\gamma}^*, \Omega^{-1*}|Y_T) =  \log \pi\left( \Omega^{-1*}|Y_T \right) + \log \pi\left( \boldsymbol{\gamma}^*|\Omega^{-1*},Y_T \right) 
+\end{equation*}
+To approximate the $\log \pi(\Omega^{-1*}|Y_T)$ term we evaluate the density $\pi(\Omega^{-1}|\boldsymbol{\gamma},\boldsymbol{\lambda},Y_T)$ at $\Omega^{-1*}$ and marginalize over the original Gibbs sampler draws $\left\{ \boldsymbol{\gamma}^{(g)}, \boldsymbol{\lambda}^{(g)} \right\}$, that is
+\begin{eqnarray*}
+	\widehat{\pi}\left( \Omega^{-1*}|Y_T \right) &=& \frac{1}{G}\sum_{g=1}^G \pi\left( \Omega^{-1*}|\boldsymbol{\gamma}^{(g)},\boldsymbol{\lambda}^{(g)},Y_T \right)\\
+	&=& \frac{1}{G}\sum_{g=1}^G \mathcal{W}_D\left(\Omega^{-1*}\left|\rho_0 + T, R_{T,\lambda^{(g)}}^{\left( g \right)}\right. \right) 
+\end{eqnarray*}
+where
+\begin{eqnarray*}
+	R^{(g)}_{T,\lambda^{(g)}} &=&  \left[ R_0^{-1} + \sum_{t=1}^{T} \lambda_t \left( \mathbf{y}_t - X_t \boldsymbol{\gamma}^{(g)} \right)\left( \mathbf{y}_t - X_t \boldsymbol{\gamma}^{(g)} \right)' \right]^{-1}\\
+	&=& \left[  R_0^{-1} + \left( \widetilde{Y} - \widetilde{X} \Gamma^{(g)} \right)' \Lambda^{(g)}\left( \widetilde{Y} - \widetilde{X} \Gamma^{(g)} \right)\right]^{-1}
+\end{eqnarray*}
+
+All that remains is to approximate $\pi\left( \boldsymbol{\gamma}^*|\Omega^{-1*}, Y_T \right)$.
+To do this, we will need to use a reduced run similar to the one used in the calculations for the general three-block Gibbs-sampler described above.
+We know $\pi\left( \boldsymbol{\gamma}|\Omega^{-1}, \boldsymbol{\lambda},Y_T \right)$ so we will evaluate this expression at $\boldsymbol{\gamma}^*$ and $\Omega^{-1*}$ and integrate out $\boldsymbol{\lambda}$ using a set of draws $\left\{ \boldsymbol{\lambda}^{(j)} \right\}$ that were generated holding $\Omega^{-1}$ \emph{fixed} at $\Omega^{-1*}$.
+Accordingly, we use
+\begin{eqnarray*}
+	\widehat{\pi} (\gamma^*|\Omega ^{-1*},Y_T)&=& \frac{1}{J} \sum_{j=1}^{J}\pi\left( \boldsymbol{\gamma}^{*}|\Omega^{-1*}, \boldsymbol{\lambda}^{(j)},Y_T \right)\\
+	&=& \frac{1}{J} \sum_{j=1}^{J}\mathcal{N}_{p}\left( \boldsymbol{\gamma}^*|\bar{\boldsymbol{\gamma}}_{\lambda ^{(g)}}^{\ast },G_{n,\lambda ^{(j)}}^* \right)
+\end{eqnarray*}
+where
+\begin{align*}
+\bar{\boldsymbol{\gamma}}_{\lambda^{(j)}}^* &= G_{T,\lambda^{(j)}}^*\left(
+G_0^{-1}\boldsymbol{\gamma}_0 +\sum_{t=1}^{T}\lambda_{t}^{(j)}X_t'\Omega^{-1*}\mathbf{y}_t\right)  \\
+G_{T,\lambda ^{(j)}}^* & =\left( G_{0}^{-1}+\sum_{t=1}^{T}\lambda
+_{t}^{(j)}X_t'\Omega^{-1*}X_t\right) ^{-1}
+\end{align*}
+\subsection{Priors}
+We use a small part of our sample to form reasonable priors. The procedure consists of two stages:
+\begin{enumerate}
+	\item Estimate the model for the training sample
+	\item Estimate the model for the remainder of the sample using the draws from the first step to form a prior
+\end{enumerate}
+Both for Student-t and normal errors we specify two prior distributions: for the coefficients $\gamma \sim \mathcal{N}_{p}\left( \boldsymbol{\gamma} |\boldsymbol{\gamma_{0}},G_{0}\right)$ and for the precision matrix $\Omega^{-1} \sim \mathcal{W}_{D}  \left(\Omega ^{-1}|\rho_{0}, R_{0}\right) $. Parameters for the two distributions are specified differently for each stage.
+
+
+\subsubsection{Stage 1: Training Sample}
+Parameters of the prior for the regression coefficients are set as follows:
+\begin{eqnarray*}
+	\gamma_{0} &=& 0 \\ 
+	G_{0} &=& C_{1}^{2}I_{p} 
+\end{eqnarray*}
+The prior distribution of the coefficient vector is centered around zero. The covariance matrix is assumed to be diagonal.\\
+Precision matrix is assumed to follow the inverse Wishart distribution with the following parameters:
+\begin{eqnarray*}
+	\rho_{0} &=& d + C_{2} \\ 
+	R_{0} &=& \frac{1}{C_{3}^{2} (\rho_{0}-d-1)}I_{d}
+\end{eqnarray*}
+The mean value of $\Omega$ implied by the prior is a diagonal matrix $C_{3}^{2}I_{d}$.\\
+For the rest of the paper we set $C_{1} = 2$, $C_{2} = 6$ and $C_{3} = 0.05$.\\
+\subsubsection{Stage 2}
+Here we use the draws based on the training sample to construct priors. Denote posterior means of draws of $\gamma$ as $\overline{\gamma}$ and the sample covariance matrix as $\widehat{G}$. We also calculate a posterior mean of the $\Omega^{-1}$ draws: $\overline{\Omega}^{-1}$.\\
+The regression coefficients prior is:
+\begin{eqnarray*}
+	\gamma_{0} &=& \overline{\gamma} \\ 
+	G_{0} &=& C_{4}^{2} \widehat{G}
+\end{eqnarray*}\\
+The prior is centered around the posterior mean of the first step draws. The standard deviation is based on the sample standard deviation of the first stage draws adjusted by the factor of $C_{4}$ to reflect uncertainty.\\
+The prior of the precision matrix is set:
+\begin{eqnarray*}
+	\rho_{0} &=& d + C_{5} \\ 
+	R_{0} &=& \frac{1}{\rho} \overline{\Omega}^{-1}
+\end{eqnarray*}
+The prior is constructed to set the mean of the precision matrix $\Omega^{-1}$ equal to the posterior mean based on the training sample. One way of widening the prior would be to decrease number of degrees of freedom $\rho_{0}$ by adjusting the value of $C_5$. \\
+For all the applications we use $C_{4} = 3$ and $C_5 = 6$.
+\section{Motivational Example}
+In order to motivate our research we simulate asset returns and demonstrate that the true factors are selected as the result of the procedure described above. \\
+As asset returns we take 10 value-weighted Fama-French industry portfolios. The returns are assumed to be follow the famous Fama-French 3 factor structure without intercept (Mkt.RF, HML and SMB). The errors follow Student-t distribution with 2.5 degrees of freedom. The simulation is based on posterior means obtained when fitting the model to the real data. Other parameters are the same as in the original sample. \\
+We assume that the researcher does not know the true distribution. Considered distributions include normal and Student-t with 4, 6, 8, 10 and 12 degrees of freedom. The pool of candidate models includes all combinations of Fama-French 5 factors(Mkt.RF, HML, SMB, RMW and CMA), a constant and a non-factor asset - Microsoft stock (MSFT). We fit in total $6\times 2^{7} = 768$ model. The simulation is based on the sample range Apr 1986 - Dec 2014 (345 observations). The training sample includes observations Apr 1986 - Dec 1990 (57 observations). \\
+The simulation setup is described below:
+\begin{enumerate}
+	\item Fit the Fama-French 3 factor model without an intercept to 10 value-weighted industry portfolios using the full sample. The errors are assumed to follow Student-t distribution with 4 degrees of freedom. 
+	\item Simulate a dataset assuming the true parameters  $\gamma$ and $\Omega^{-1} $ to be equal to the posterior means:
+	\begin{itemize}
+		\item Simulate errors:
+		\begin{equation*}
+		\boldsymbol{\varepsilon}^s_{t}\sim t_{10,2.5 }\left( 0,\Omega \right)
+		\end{equation*}
+		\item Simulate returns using values of Fama-French 3 factors observed in the data:
+		\begin{equation*}
+		\mathbf{y}_t^s = X_t \boldsymbol{\gamma} + \boldsymbol{\varepsilon}^s_t
+		\end{equation*}
+	\end{itemize}
+	\item Estimate all candidate models and evaluate the likelihood. Run the usual two step estimation procedure using the training sample to construct priors for each model.  
+\end{enumerate}
+
+\begin{table}[ht]
+	\footnotesize
+	\centering
+	\begin{tabular}{rrrrrrrrrrrr}
+		\hline
+		& & NoDur & Durbl & Manuf & Enrgy & HiTec & Telcm & Shops & Hlth & Utils & Other \\ 
+		\hline
+		\multirow{3}{*}{Data} & Apr 1986 - Dec 2014 & 0.0080 & 0.0056 & 0.0078 & 0.0080 & 0.0074 & 0.0062 & 0.0073 & 0.0084 & 0.0061 & 0.0058 \\ 
+		& Apr 1986 - Dec 1990 & 0.0099 & -0.0033 & 0.0034 & 0.0092 & -0.0037 & 0.0084 & 0.0036 & 0.0095 & 0.0033 & -0.0020 \\ 
+		& Jan 1991 - Dec 2014 & 0.0076 & 0.0073 & 0.0086 & 0.0078 & 0.0096 & 0.0057 & 0.0080 & 0.0082 & 0.0066 & 0.0073 \\ 
+		\hline
+		\multirow{3}{*}{Simulated} & Apr 1986 - Dec 2014 & 0.0035 & 0.0104 & 0.0063 & 0.0036 & 0.0062 & 0.0089 & 0.0045 & 0.0052 & 0.0043 & 0.0085 \\ 
+		& Apr 1986 - Dec 1990 & -0.0016 & 0.0039 & 0.0020 & 0.0005 & 0.0032 & 0.0106 & -0.0016 & 0.0025 & 0.0047 & 0.0036 \\ 
+		& Jan 1991 - Dec 2014 & 0.0045 & 0.0117 & 0.0071 & 0.0042 & 0.0067 & 0.0086 & 0.0057 & 0.0057 & 0.0043 & 0.0094 \\ 
+		\hline
+	\end{tabular}
+	\caption{Average Portfolio Returns for Simulated and Real Data}
+\end{table}
+\begin{table}[ht]
+	\centering
+	\footnotesize
+	\begin{tabular}{rrrrrrr}
+		\hline
+		& Mkt.RF & SMB & HML & RMW & CMA & MSFT \\ 
+		\hline
+		 Apr 1986 - Dec 2014 & 0.0062 & 0.0011 & 0.0023 & 0.0036 & 0.0033 & 0.0102 \\ 
+		Apr 1986 - Dec 1990 & 0.0028 & -0.0068 & 0.0003 & 0.0047 & 0.0054 & 0.0327 \\ 
+		Jan 1991 - Dec 2014 & 0.0069 & 0.0027 & 0.0027 & 0.0034 & 0.0029 & 0.0058 \\ 
+		\hline
+	\end{tabular}
+		\caption{Average Factor Returns}
+\end{table}
+\begin{table}[ht]
+	
+	\centering
+	\footnotesize
+	\begin{tabular}{ccc}
+		\hline
+		Model & DF & log margLike \\ 
+		\hline
+Mkt.RF + SMB + HML & 4 & 7187.32 \\ 
+Mkt.RF + SMB + HML + CMA & 4 & 7177.05 \\ 
+Mkt.RF + SMB + HML + MSFT & 4 & 7170.99 \\ 
+Mkt.RF + SMB + HML + RMW & 4 & 7170.24 \\ 
+Mkt.RF + SMB + HML & 6 & 7169.59 \\ 
+Mkt.RF + SMB + HML + CMA + MSFT & 4 & 7161.34 \\ 
+constant + Mkt.RF + SMB + HML & 4 & 7160.41 \\ 
+Mkt.RF + SMB + HML + CMA & 6 & 7159.73 \\ 
+constant + Mkt.RF + SMB + HML + CMA & 4 & 7157.97 \\ 
+Mkt.RF + SMB + HML + RMW + MSFT & 4 & 7152.92 \\ 
+Mkt.RF + SMB + HML & 8 & 7152.24 \\ 
+constant + Mkt.RF + SMB + HML + MSFT & 4 & 7151.56 \\ 
+Mkt.RF + SMB + HML + RMW & 6 & 7151.19 \\ 
+constant + Mkt.RF + SMB + HML & 6 & 7149.93 \\ 
+constant + Mkt.RF + SMB + HML + RMW & 4 & 7147.47 \\ 
+Mkt.RF + SMB + HML + MSFT & 6 & 7147.06 \\ 
+Mkt.RF + SMB + HML + RMW + CMA & 4 & 7146.92 \\ 
+Mkt.RF + SMB + HML + CMA + MSFT & 6 & 7146.04 \\ 
+constant + Mkt.RF + SMB + HML + CMA + MSFT & 4 & 7145.13 \\ 
+constant + Mkt.RF + SMB + HML + MSFT & 6 & 7139.5 \\ 
+		\hline
+	\end{tabular}
+	\caption{Motivational Simulation: 20 Best Models}
+\end{table}
+
+The best model selects the true factors. Even though the true error distribution (Student-t with 2.5 degrees of freedom) was not considered, the distribution of the best model (Student-t with 4 degrees of freedom) is the closest to the truth. \\
+As can be seen from the results, the procedure correctly identified the factors. Models including non-relevant factors or the non-factor (Microsoft stock) are significantly worse on the log scale.
+\section{Application}
+\subsection{Data}
+We apply our method to 10 value-weighted industry portfolios available at the Kenneth French's website. The 12 candidate factors include:
+\begin{itemize}
+	\item Five 
+\end{itemize}
+
+\section{Conclusion}
+\bibliography{factors}
+\end{document}

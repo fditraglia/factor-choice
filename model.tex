@@ -4,7 +4,7 @@ Consider a linear $K$-factor model for $D$ assets of the form
 \begin{equation*}
 y_{dt}=\alpha _{d} + \mathbf{f}_{t}' \boldsymbol{\beta}_d + \varepsilon_{it}
 \end{equation*}
-where $y_{dt}$ denotes the return for test portfolio $d$ in period $t$ for $d = 1, \hdots, D$ and $t = 1, \hdots, T$ and $\mathbf{f}_{t}'=\left(f_{t1}, \hdots,f_{tK}\right)$ vector of factor returns.
+where $y_{dt}$ denotes the excess return for test portfolio $d$ in period $t$ for $d = 1, \hdots, D$ and $t = 1, \hdots, T$ and $\mathbf{f}_{t}'=\left(f_{t1}, \hdots,f_{tK}\right)$ vector of factor returns.
 This is a special case of the seemingly unrelated regression (SUR) model in which the regressors are \emph{identical} across equations.
 Note that the factors included into the regression $\mathbf{f}$, the number of factors $K$ as well as the presence of the intercept depend on the model under consideration.  
 In order to simplify the notation, we do not introduce a model index, however, it is important to keep in mind that the techniques discussed below are applied to each possible combination of factors.
@@ -32,16 +32,15 @@ The SUR model lets us explicitly explore the cross-sectional dependence of error
 The possible variance linkages between different assets are captured by the scale matrix $\Omega$. 
 While acknowledging the importance of these linkages and the possible influence they may have on the model selection, we avoid placing \emph{a priori} restrictions on this matrix, such as assuming that it is diagonal, and instead infer the covariance structure of errors from the data.
 
-To permit use to make posterior draws from the Gibbs sampler, we use representation of the Student-t distribution as a scale mixture of normal distributions, as in \cite{chib1995hierarchical}.
+To permit use of Gibbs sampler draws, we use representation of the Student-t distribution as a scale mixture of normal distributions, as in \cite{chib1995hierarchical}.
 In particular,
-\begin{align*}
+\begin{eqnarray*}
 \boldsymbol{\varepsilon}_{t}|\lambda _{t} &\sim N\left( 0,\lambda _{t}^{-1}\Omega \right)
 \\
 \lambda _{t} &\sim G\left( \frac{\nu }{2},\frac{\nu }{2}\right)
-\end{align*}
+\end{eqnarray*}
 where $G(\alpha,\beta)$ denotes the Gamma distribution with shape parameter $\alpha$ and rate parameter $\beta$. 
 We parameterize this problem in terms of the $D\times D$ \emph{precision} matrix $\Omega^{-1}$ and the $p\times1$ vector of regression coefficients $\boldsymbol{\gamma}$, where $p = D(K+1)$. 
-Using this representation, after conditioning on $\left( \nu, \boldsymbol{\lambda} \right)$, where $\boldsymbol{\lambda} = (\lambda_1, \dots \lambda_T)'$, we are essentially back in the familiar normal case.
 In any inference that we carry out, as well as in the calculation of the marginal likelihood, we will marginalize over $\boldsymbol{\lambda}$ by simply ignoring these draws.
 We will place a normal prior on $\boldsymbol{\gamma}$ and a Wishart prior on $\Omega^{-1}$. 
 
@@ -66,93 +65,166 @@ R_{T,\lambda} = \left[ R_0^{-1} + \sum_{t=1}^{T} \lambda_t\left( \mathbf{y}_t - 
 
 To implement the Gibbs sampler, we simply need to draw sequentially from these distributions, in the order given above. 
 We will require, however, starting values for both $\Omega^{-1}$ and each of the $\lambda_t$ parameters. 
-A reasonable starting value for $\lambda_t$ is one, which makes the initial draws for the regression coefficients and the inverse scale matrix the same as if were work withing with the normal model.
+A reasonable starting value for $\lambda_t$ is one.
 
-\subsection{Marginal Likelihood for Student-t Model}
- We calculate the marginal likelihood using the method of \cite{chib1995marginal}.
+\subsection{Marginal Likelihood}
+ We calculate the marginal likelihood using the method of \cite{chib1995marginal}. Consider the Bayes rule for some values of parameters $f(\boldsymbol{\gamma},\Omega^{-1})$:
  \begin{equation*}
- f(y) = \frac{(y|\boldsymbol{\gamma}^*,\Omega^{-1*})\pi\left(\boldsymbol{\gamma}^*, \Omega^{-1*}\right)}{\pi\left(\boldsymbol{\gamma}^*, \Omega^{-1*}|y \right)}
+ f(y) = \frac{(y|\boldsymbol{\gamma},\Omega^{-1})\pi\left(\boldsymbol{\gamma}, \Omega^{-1}\right)}{\pi\left(\boldsymbol{\gamma}, \Omega^{-1}|y \right)}
  \end{equation*} 
 Re-arranging Bayes' Rule we have the identity
 \begin{equation*}
-f(y) = \frac{f(y|\boldsymbol{\gamma}^*,\Omega^{-1*})\pi\left(\boldsymbol{\gamma}^*, \Omega^{-1*}\right)}{\pi\left(\boldsymbol{\gamma}^*, \Omega^{-1*}|y \right)}
+f(y) = \frac{f(y|\boldsymbol{\gamma},\Omega^{-1})\pi\left(\boldsymbol{\gamma}, \Omega^{-1}\right)}{\pi\left(\boldsymbol{\gamma}, \Omega^{-1}|y \right)}
 \end{equation*}
-for any specified values $(\boldsymbol{\gamma}^*,\Omega^{-1*})$ of the parameters.
-In particular this holds at the \emph{posterior mean} which is where we will evaluate the expression.
+which holds for any specified values $(\boldsymbol{\gamma},\Omega^{-1})$ of the parameters.
+In particular this holds at the \emph{posterior mean} $(\boldsymbol{\gamma}^*,\Omega^{-1*})$ which is where we will evaluate the expression.
 Hence, the \emph{log} marginal likelihood is given by
 \begin{equation*}
 \log{f(y)} =  \log \left(\boldsymbol{\gamma}^*, \Omega^{-1*}\right) + \log{f(y|\boldsymbol{\gamma}^*,\Omega^{-1*})} - \pi\left(\boldsymbol{\gamma}^*, \Omega^{-1*}|y \right)
 \end{equation*}
-Specializing this to the SUR model considered above,
+Since our priors over $\boldsymbol{\gamma}$ and $\Omega^{-1}$ are independent, we can re-write the equation above as follows:
 \begin{equation*}
 \log f(Y_T) = \log \pi(\boldsymbol{\gamma}^*) + \log \pi\left( \Omega^{-1*} \right) + \log f\left( Y_T|\boldsymbol{\gamma}^*, \Omega^{-1*} \right) - \log \pi\left( \boldsymbol{\gamma}^*, \Omega^{-1*}|Y_T \right)
 \end{equation*}
-since our priors over $\boldsymbol{\gamma}$ and $\Omega^{-1}$ are independent. We can evaluate the marginal likelihood using the \cite{chib1995marginal} method that approximates $\log f(Y_T)$ by evaluating each of the terms on the right-hand-side of the preceding expression using the output of the Gibbs sampler.
+We can evaluate the marginal likelihood using the \cite{chib1995marginal} method that approximates $\log f(Y_T)$ by evaluating each of the terms on the right-hand-side of the preceding expression using the output of the Gibbs sampler.
 
 \subsection{Priors}
-One of the most challenging parts of the estimation procedure is to set up reasonable priors. 
-In order for the marginal likelihood comparison to be valid, the marginal likelihood for each model should be compute with proper prior. 
-Using generic prior may lead to undesirable consequences. 
-In other words, it's important to set the priors carefully and make them specific to each model under consideration. 
-In order to set individual level priors, we suggest to use a training sample to form qualified prior views for every model at hand.
-The priors based on he training sample are model-specific and thus can be used for model comparison. 
-We split  the sample into two parts: training sub-sample and fit sub-sample. 
-The training sample is used to carefully construct priors later used to fit the model on the rest of the data. 
-Training sample is not a part of the final estimation. 
+In order for the marginal likelihood comparison to be valid, proper priors should be specified. 
 
-Both for Student-t and normal errors we specify two prior distributions: for the coefficients $\gamma \sim \mathcal{N}_{p}\left( \boldsymbol{\gamma} |\boldsymbol{\gamma_{0}},G_{0}\right)$ and for the precision matrix $\Omega^{-1} \sim \mathcal{W}_{D}  \left(\Omega ^{-1}|\rho_{0}, R_{0}\right) $. 
+Given that the factor coefficients should be determined jointly and that factors differ for each model, an individual level prior should be set for every model.
+The same hold for the error precision matrix: its prior should be specified differently depending on the factors.   
+In order to place model-specific priors, we suggest to use a training sample.
+We fit each model to the training sample data and use the model-specific posterior means obtained from the Gibbs sampler as a benchmark to specify the prior for the estimation sample. 
+The training sample is employed solely to construct priors and is not a part of the final estimation procedure. 
+
+We place two prior distributions: normal on the coefficients and Wishart on the  precision matrix. 
 Parameters for the two distributions are specified differently for each stage.
 
 
 \subsubsection{Stage 1: Training Sample}
-When applying the method to the training sample, we have very little information about the possible parameters values. 
-We use diffused priors to reflect the uncertainty.
-For each model we start with the assumption that factor loadings can be both positive and negative. 
-We have very little information about how these loadings interact, so our starting point would be to use diagonal covariance matrix of factor loadings.
-Parameters of the prior for the regression coefficients are set as follows:
+In order to apply Bayesian inference to the training sample, we should specify priors for this estimation step as well. \\
+At this stage diffuse priors are employed in order to reflect the parameter uncertainty.
+\paragraph{Regression Coefficients:} 
 \begin{eqnarray*}
-	\gamma_{0} &=& 0 \\ 
+	\boldsymbol{\gamma} &\sim& \mathcal{N}_{p}\left( \boldsymbol{\gamma}_{0},G_{0}\right) \\
+	\boldsymbol{\gamma}_{0} &=& 0 \\ 
 	G_{0} &=& C_{1}^{2}I_{p} 
 \end{eqnarray*}
-The prior distribution of the coefficient vector is centered around zero. 
-The covariance matrix is assumed to be diagonal.
-The constant $C_{1}$ controls the tightness: the larger $C_{1}$, the wider is the prior.
-As we have very little information about the covariance structure of the errors, a prior centered around the diagonal matrix seems to be a reasonable starting point. 
-Covariance matrix is assumed to follow the inverse Wishart distribution with the following parameters:
+The prior distribution of the coefficient vector $\boldsymbol{\gamma}$ is centered around zero. 
+The covariance matrix of the coefficients is assumed to be diagonal.
+The tightness of the prior is controlled by the constant $C_{1}$: the larger $C_{1}$ is, the wider is the prior.
+\paragraph{Inverse Scale Matrix:}
 \begin{eqnarray*}
+	\Omega^{-1} &\sim& \mathcal{W}_D\left(\rho_0, R_{0}\right) \\
 	\rho_{0} &=& d + C_{2} \\ 
 	R_{0} &=& \frac{1}{C_{3}^{2} (\rho_{0}-d-1)}I_{d}
-\end{eqnarray*}
-Using the properties of the inverse Wishart distribution, one can easily see that the mean value of $\Omega$ implied by the prior is a diagonal matrix $R_{0} \times(\rho_{0} - d- 1) = C_{3}^{2}I_{d}$. 
-One way of widening the prior would be to decrease number of degrees of freedom $\rho_{0}$ by adjusting the value of $C_2$. 
-Constant $C_{3}$ is used to set the magnitude of the elements of the covariance matrix. 
-For the rest of the paper we set $C_{1} = 2$, $C_{2} = 6$ and $C_{3} = 0.05$ (we are working with return in decimals).
-These priors are used to estimate the model using only the training sample data. 
-The posterior draws obtained as a result of the procedure, are later used to form more informed view about the model parameters.
+\end{eqnarray*} 
+Using the properties of the inverse Wishart distribution, it can be seen that both the mean  of the scale matrix $\Omega$ and the precision matrix $\Omega^{-1}$ implied by the prior are diagonal.
+The tightness of the prior is governed by the number of degrees of freedom $\rho_{0}$. One way of widening the prior would be to decrease number of degrees of freedom by adjusting the value of $C_2$. 
+Constant $C_{3}$ is used to set the magnitude of the elements of the covariance matrix. \\
 
-\subsubsection{Stage 2}
-The first stage draws contain some information about the parameters and serve as a basis to construct proper priors for the estimation.
-Denote first stage posterior means of $\gamma$ as $\overline{\gamma}$ and the sample covariance matrix of these draws as $\widehat{G}$. 
-We also calculate a posterior mean of the precision matrix $\Omega^{-1}$: $\overline{\Omega}^{-1}$. 
-The regression coefficients prior is:
+For the rest of the paper we set $C_{1} = 2$, $C_{2} = 6$ and $C_{3} = 0.05$.\\
+The posterior draws obtained from the Gibbs sampler when fitting a model to the training sample are later used to form model-specific priors used for the estimation sample.
+
+\subsubsection{Stage 2: Estimation Sample}
+The first stage draws serve as a basis to construct proper priors for the estimation.
+\paragraph{Regression Coefficients:} 
 \begin{eqnarray*}
-	\gamma_{0} &=& \overline{\gamma} \\ 
+	\boldsymbol{\gamma} &\sim& \mathcal{N}_{p}\left( \boldsymbol{\gamma}_{0},G_{0}\right) \\
+	\boldsymbol{\gamma}_{0} &=& \overline{\gamma} \\ 
 	G_{0} &=& C_{4}^{2} \widehat{G}
 \end{eqnarray*}\\
-The prior of factor loadings is thus centered around the posterior mean of the first step draws. 
+Denote first stage posterior means of the coefficient vector $\boldsymbol{\gamma}$ as $\overline{\boldsymbol{\gamma}}$ and the sample covariance matrix of these draws as $\widehat{G}$.
+The prior of factor loadings is thus centered around the posterior mean of the first stage draws. 
 The standard deviation is based on the sample standard deviation of the first stage draws adjusted by the factor of $C_{4}$ to reflect uncertainty.
+\paragraph{Inverse Scale Matrix:}
+\begin{eqnarray*}
+	\Omega^{-1} &\sim& \mathcal{W}_D\left(\rho_0, R_{0}\right) \\
+	\rho_{0} &=& d + C_{5} \\ 
+	R_{0} &=& \frac{1}{\rho} \overline{\Omega}^{-1},
+\end{eqnarray*} 
+where $\overline{\Omega}^{-1}$ is the posterior mean of the first stage draws of $\Omega^{-1}$.
 Note that our algorithm provides us draws of the precision matrix $\Omega^{-1}$, not of the covariance matrix $\Omega$. 
 For this reason we form the prior in terms of the posterior mean of ${\Omega}^{-1}$. 
-We use the duality of Wishart and inverse Wishart distribution: if $\Omega \sim \mathcal{W}_D\left(\rho_0, R_0 \right)$, $\Omega^{-1} \sim \mathcal{IW}_D\left(\rho_0, R_0 \right)$. 
-The prior of the precision matrix is set:
-\begin{eqnarray*}
-	\rho_{0} &=& d + C_{5} \\ 
-	R_{0} &=& \frac{1}{\rho} \overline{\Omega}^{-1}
-\end{eqnarray*}
-The prior is constructed to set the mean of the precision matrix $\Omega^{-1}$ equal to the posterior mean based on the training sample: $\rho_{0} \times R_{0} =\overline{\Omega}^{-1} $. 
+The prior is constructed to set the mean of the precision matrix $\Omega^{-1}$ equal to the posterior mean based on the training sample. 
 Again, the tightness of the prior is controlled by degrees of freedom parameter $\rho_{0}$. 
+
 For all the applications we use $C_{4} = 3$ and $C_5 = 6$.
 
 \subsection{Prior Updates}
-\todo[inline]{Fill in something here?}
+Here we illustrate the process of setting model specific priors and show how priors vary by the model depending on the included factors.
+
+For simplicity consider a hypothetical example with the cross-section of returns consisting only of  two assets: industry portfolios for durable(Durbl) and non-durable consumer goods (NoDur).
+We fit two models.
+First model is a usual CAPM that includes an intercept and a market portfolio(Mkt.RF). 
+An second model is a extended version of the first one that includes a value factor(HML) in addition to the constant and a the market factor. 
+
+We concentrate solely on the mean of the coefficient vector $\boldsymbol{\gamma}$, however, similar exercise can be done for the precision matrix of errors.
+\begin{eqnarray*}
+\underset{\text{Stage 1 Prior}}
+{\begin{blockarray}{ccc}
+	& constant & Mkt.RF  \\ 
+	\begin{block}{c(cc)}
+	NoDur & 0.000 & 0.000 \\ 
+	Durbl & 0.000 & 0.000 \\ 
+	\end{block}
+\end{blockarray} }
+\rightarrow
+\underset{\text{Stage 2 Prior}}
+{\begin{blockarray}{ccc}
+	& constant & Mkt.RF \\ 
+	\begin{block}{c(cc)}
+	NoDur & 0.000 & 0.992 \\ 
+	Durbl & -0.001 & 1.046 \\ 
+	\end{block}
+\end{blockarray} }
+\rightarrow \\
+\rightarrow
+\underset{\text{Posterior}}
+{\begin{blockarray}{ccc}
+	& constant & Mkt.RF \\ 
+	\begin{block}{c(cc)}
+	NoDur & 0.004 & 0.793 \\ 
+	Durbl & -0.002 & 1.164 \\ 
+	\end{block}
+\end{blockarray}}
+\end{eqnarray*}
+This equation demonstrates the update of beliefs about the CAPM coefficients.
+The first stage prior is centered around zero for all coefficients. 
+The second stage prior based on the training sample reflects the peculiarities of the data. 
+Finally, the posterior is an updated mean based on the estimation sample. 
+\begin{eqnarray*}
+\underset{\text{Stage 1 Prior}}
+{\begin{blockarray}{cccc}
+	& constant & Mkt.RF & HML \\ 
+	\begin{block}{c(ccc )}
+	NoDur & 0.000 & 0.000 & 0.000 \\ 
+	Durbl & 0.000 & 0.000 & 0.000 \\ 
+	\end{block}
+\end{blockarray} }
+\rightarrow
+\underset{\text{Stage 2 Prior}}
+{\begin{blockarray}{cccc}
+	& constant & Mkt.RF & HML\\ 
+	\begin{block}{c(ccc)}
+NoDur & 0.001 & 0.981 & -0.078 \\ 
+Durbl & -0.003 & 1.080 & 0.296 \\ 
+	\end{block}
+\end{blockarray} }
+\rightarrow \\
+\rightarrow
+\underset{\text{Posterior}}
+{\begin{blockarray}{cccc}
+	& constant & Mkt.RF & HML \\ 
+	\begin{block}{c(ccc)}
+	NoDur & 0.003 & 0.807 & 0.136 \\ 
+	Durbl & -0.004 & 1.240 & 0.479 \\ 
+	\end{block}
+\end{blockarray} }
+\end{eqnarray*}
+This equation show the evolution of prior for an extended model. 
+We can see that the second stage prior is different from the one we places on a CAPM model. 
+Even though the market factor is also included into this model as well, the prior mean of the market beta is different for both portfolios because of an added factor.
+
+This example show that the proposed procedure allows automatically specify proper priors for each model.
 

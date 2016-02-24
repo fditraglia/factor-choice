@@ -1,102 +1,58 @@
 %!TEX root = main.tex
 
 \section{Motivational Example}
-In order to motivate our research we simulate asset returns and demonstrate that the true factors are selected as the result of the procedure described above. 
+In order to motivate our research we simulate asset returns and demonstrate that the true factors are selected as the result of our procedure.
+We intentionally mis-specify the distribution of errors to show that even if the true model is not among the candidates under consideration but the imposed distribution is close enough to the true one, the correct factor structure is selected. 
+In order to address a wide-spread concern that some non-factor assets may be selected if they are correlated with the market, we include such an asset as one of the candidate factors to demonstrate the robustness of the proposed selection procedure.\\
 As asset returns we take 10 value-weighted Fama-French industry portfolios. 
-The returns are assumed to be follow the famous Fama-French 3 factor structure without intercept (Mkt.RF, HML and SMB). 
-The errors follow Student-t distribution with 2.5 degrees of freedom. 
-The simulation is based on posterior means obtained when fitting the model to the real data. 
-Other parameters are the same as in the original sample.
-We assume that the researcher does not know the true distribution. 
-Considered distributions include normal and Student-t with 4, 6, 8, 10 and 12 degrees of freedom. 
-The pool of candidate models includes all combinations of Fama-French 5 factors(Mkt.RF, HML, SMB, RMW and CMA), a constant and a non-factor asset - Microsoft stock (MSFT). 
-We add a Microsoft stock  because of the wide-spread concern that non-factors may be selected if they are correlated with the true factors.
-Our results indicate this concern is not supported in the Bayesian framework. 
-We fit in total $6\times 2^{7} = 768$ model. 
+The returns are assumed to be follow the famous Fama-French 3 factor structure without intercept. The factor include market portfolio (Mkt.RF), size (SMB) and value factors (HML). 
+The true errors follow Student-t distribution with 2.5 degrees of freedom. 
+The model parameters(coefficient vector $\boldsymbol{\gamma}$ and the error precision matrix $\Omega^{-1}$) are equal posterior means obtained when fitting the model to the real data. 
 The simulation is based on the sample range Apr 1986 - Dec 2014 (345 observations). 
 The training sample includes observations Apr 1986 - Dec 1990 (57 observations).
+We assume that the true distribution (Student-t with 2.5 degrees of freedom) is not considered. 
+Instead, considered distributions include normal and Student-t with 4, 6, 8, 10 and 12 degrees of freedom. 
+The pool of candidate models includes all combinations of Fama-French 5 factors(Mkt.RF, HML, SMB, RMW and CMA), a constant and a non-factor asset - Microsoft stock (MSFT). We fit in total $6\times 2^{7} = 768$ model. 
+
+
 
 The simulation setup is described below:
 \begin{enumerate}
-	\item Fit the Fama-French 3 factor model without an intercept to 10 value-weighted industry portfolios using the full sample. The errors are assumed to follow Student-t distribution with 4 degrees of freedom. 
-	\item Simulate a dataset assuming the true parameters  $\gamma$ and $\Omega^{-1} $ to be equal to the posterior means:
-	\begin{itemize}
-		\item Simulate errors:
+	\item Fit the Fama-French three factor model without an intercept to 10 value-weighted industry portfolios using the full sample under the assumption that errors follow Student-t distribution with 2.5 degrees of freedom. 
+	The posterior means $\boldsymbol{\gamma}^*$ and $\Omega^{-1*}$ obtained from the Gibbs sampler as a product of fitting this model are assumed to be the true parameter values for the simulation purposes.
+	\item Simulate a dataset for the full sample range assuming the true parameters  to be equal to the posterior means and that errors follow Student-t distribution with 2.5 degrees of freedom.
+	\begin{equation*}
+		\boldsymbol{\varepsilon}^s_{t}\sim t_{10,2.5 }\left( 0,\Omega^* \right)
+	\end{equation*}
+	Simulate returns using the true values of the three Fama-French factors observed in the data :
 		\begin{equation*}
-		\boldsymbol{\varepsilon}^s_{t}\sim t_{10,2.5 }\left( 0,\Omega \right)
+		\mathbf{y}_t^s = X_t \boldsymbol{\gamma}^* + \boldsymbol{\varepsilon}^s_t
 		\end{equation*}
-		\item Simulate returns using values of Fama-French 3 factors observed in the data:
-		\begin{equation*}
-		\mathbf{y}_t^s = X_t \boldsymbol{\gamma} + \boldsymbol{\varepsilon}^s_t
-		\end{equation*}
-	\end{itemize}
-	\item Estimate all candidate models and evaluate the likelihood. Run the usual two step estimation procedure using the training sample to construct priors for each model.
+
+	\item Estimate all candidate models and evaluate the marginal likelihood.
+	Use the training sample to specify priors for each candidate model.
 \end{enumerate}
 
 \begin{sidewaystable}[ht]
 	\centering
-	\begin{tabular}{rrrrrrrrrrrr}
-		\hline
-		& & NoDur & Durbl & Manuf & Enrgy & HiTec & Telcm & Shops & Hlth & Utils & Other \\ 
-		\hline
-		\multirow{3}{*}{Data} & Apr 1986 - Dec 2014 & 0.0080 & 0.0056 & 0.0078 & 0.0080 & 0.0074 & 0.0062 & 0.0073 & 0.0084 & 0.0061 & 0.0058 \\ 
-		& Apr 1986 - Dec 1990 & 0.0099 & -0.0033 & 0.0034 & 0.0092 & -0.0037 & 0.0084 & 0.0036 & 0.0095 & 0.0033 & -0.0020 \\ 
-		& Jan 1991 - Dec 2014 & 0.0076 & 0.0073 & 0.0086 & 0.0078 & 0.0096 & 0.0057 & 0.0080 & 0.0082 & 0.0066 & 0.0073 \\ 
-		\hline
-		\multirow{3}{*}{Simulated} & Apr 1986 - Dec 2014 & 0.0035 & 0.0104 & 0.0063 & 0.0036 & 0.0062 & 0.0089 & 0.0045 & 0.0052 & 0.0043 & 0.0085 \\ 
-		& Apr 1986 - Dec 1990 & -0.0016 & 0.0039 & 0.0020 & 0.0005 & 0.0032 & 0.0106 & -0.0016 & 0.0025 & 0.0047 & 0.0036 \\ 
-		& Jan 1991 - Dec 2014 & 0.0045 & 0.0117 & 0.0071 & 0.0042 & 0.0067 & 0.0086 & 0.0057 & 0.0057 & 0.0043 & 0.0094 \\ 
-		\hline
-	\end{tabular}
-	\caption{Average Portfolio Returns for Simulated and Real Data}
+	\input{tables/averagePortfolioReturnsSimul.tex}
+	\label{table:avPortfolioReturnsSimul}	
+	\caption{Simulation: Average Portfolio Returns}
+	\bigskip\bigskip
+	\input{tables/averageFactorReturnsSimul.tex}
+	\caption{Simulation:Average Factor Returns}
+	\label{table:avFactorReturnsSimul}	
 \end{sidewaystable}
 
-\begin{table}[ht]
+
+\begin{table}[ht]$  $
 	\centering
-	\begin{tabular}{rrrrrrr}
-		\hline
-		& Mkt.RF & SMB & HML & RMW & CMA & MSFT \\ 
-		\hline
-		 Apr 1986 - Dec 2014 & 0.0062 & 0.0011 & 0.0023 & 0.0036 & 0.0033 & 0.0102 \\ 
-		Apr 1986 - Dec 1990 & 0.0028 & -0.0068 & 0.0003 & 0.0047 & 0.0054 & 0.0327 \\ 
-		Jan 1991 - Dec 2014 & 0.0069 & 0.0027 & 0.0027 & 0.0034 & 0.0029 & 0.0058 \\ 
-		\hline
-	\end{tabular}
-		\caption{Average Factor Returns}
-\end{table}
-\begin{table}[ht]
-	
-	\centering
-	\begin{tabular}{ccc}
-		\hline
-		Model & DF & log margLike \\ 
-		\hline
-Mkt.RF + SMB + HML & 4 & 7187.32 \\ 
-Mkt.RF + SMB + HML + CMA & 4 & 7177.05 \\ 
-Mkt.RF + SMB + HML + MSFT & 4 & 7170.99 \\ 
-Mkt.RF + SMB + HML + RMW & 4 & 7170.24 \\ 
-Mkt.RF + SMB + HML & 6 & 7169.59 \\ 
-Mkt.RF + SMB + HML + CMA + MSFT & 4 & 7161.34 \\ 
-constant + Mkt.RF + SMB + HML & 4 & 7160.41 \\ 
-Mkt.RF + SMB + HML + CMA & 6 & 7159.73 \\ 
-constant + Mkt.RF + SMB + HML + CMA & 4 & 7157.97 \\ 
-Mkt.RF + SMB + HML + RMW + MSFT & 4 & 7152.92 \\ 
-Mkt.RF + SMB + HML & 8 & 7152.24 \\ 
-constant + Mkt.RF + SMB + HML + MSFT & 4 & 7151.56 \\ 
-Mkt.RF + SMB + HML + RMW & 6 & 7151.19 \\ 
-constant + Mkt.RF + SMB + HML & 6 & 7149.93 \\ 
-constant + Mkt.RF + SMB + HML + RMW & 4 & 7147.47 \\ 
-Mkt.RF + SMB + HML + MSFT & 6 & 7147.06 \\ 
-Mkt.RF + SMB + HML + RMW + CMA & 4 & 7146.92 \\ 
-Mkt.RF + SMB + HML + CMA + MSFT & 6 & 7146.04 \\ 
-constant + Mkt.RF + SMB + HML + CMA + MSFT & 4 & 7145.13 \\ 
-constant + Mkt.RF + SMB + HML + MSFT & 6 & 7139.5 \\ 
-		\hline
-	\end{tabular}
-	\caption{Motivational Simulation: 20 Best Models}
+	\input{tables/bestModelsSimul.tex}
+	\caption{Simulation: 20 Best Models}
+	\label{table:bestModelsSimul}
 \end{table}
 
-The best model selects the true factors. 
-Even though the true error distribution (Student-t with 2.5 degrees of freedom) was not considered, the distribution of the best model (Student-t with 4 degrees of freedom) is the closest to the truth. 
-As can be seen from the results, the procedure correctly identified the factors. 
+As can be seen from the simulation results \ref{table:bestModelsSimul} the model with the highest marginal likelihood correctly identified three factors(Mkt.RF, HML and SMB).
+Moreover, even though the true error distribution (Student-t with 2.5 degrees of freedom) was not considered, the distribution of the best model (Student-t with 4 degrees of freedom) is the closest to the truth. 
 Models including non-relevant factors or the non-factor (Microsoft stock) are significantly worse on the log scale.
+This simulation shows that marginal likelihood performs well in the finite sample.

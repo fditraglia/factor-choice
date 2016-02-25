@@ -45,7 +45,7 @@ In any inference that we carry out, as well as in the calculation of the margina
 We will place a normal prior on $\boldsymbol{\gamma}$ and a Wishart prior on $\Omega^{-1}$. 
 
 \subsection{The Gibbs Sampler}
-The sampler proceeds by fixing the degrees of freedom parameter $\nu$.
+In order to approximate the posterior distribution we implement Gibbs sample following \cite{chib1996markov} and \cite{carlin1991inference}. The sampler proceeds by fixing the degrees of freedom parameter $\nu$.
 If $\nu$ is to be chosen from the data, this can be accomplished using the marginal likelihood, as described below.
 Holding $\nu$ fixed, the full set of conditional posteriors is as follows:
 
@@ -68,11 +68,8 @@ We will require, however, starting values for both $\Omega^{-1}$ and each of the
 A reasonable starting value for $\lambda_t$ is one.
 
 \subsection{Marginal Likelihood}
- We calculate the marginal likelihood using the method of \cite{chib1995marginal}. Consider the Bayes rule for some values of parameters $f(\boldsymbol{\gamma},\Omega^{-1})$:
- \begin{equation*}
- f(y) = \frac{(y|\boldsymbol{\gamma},\Omega^{-1})\pi\left(\boldsymbol{\gamma}, \Omega^{-1}\right)}{\pi\left(\boldsymbol{\gamma}, \Omega^{-1}|y \right)}
- \end{equation*} 
-Re-arranging Bayes' Rule we have the identity
+We calculate the marginal likelihood using the method of \cite{chib1995marginal}.
+Consider the re-arranged Bayes rule:
 \begin{equation*}
 f(y) = \frac{f(y|\boldsymbol{\gamma},\Omega^{-1})\pi\left(\boldsymbol{\gamma}, \Omega^{-1}\right)}{\pi\left(\boldsymbol{\gamma}, \Omega^{-1}|y \right)}
 \end{equation*}
@@ -151,7 +148,7 @@ Again, the tightness of the prior is controlled by degrees of freedom parameter 
 
 For all the applications we use $C_{4} = 3$ and $C_5 = 6$.
 
-\subsection{Prior Updates}
+\subsection{Training Sample Prior: An Example}
 Here we illustrate the process of setting model specific priors and show how priors vary by the model depending on the included factors.
 
 For simplicity consider a hypothetical example with the cross-section of returns consisting only of  two assets: industry portfolios for durable(Durbl) and non-durable consumer goods (NoDur).
@@ -159,7 +156,7 @@ We fit two models.
 First model is a usual CAPM that includes an intercept and a market portfolio(Mkt.RF). 
 An second model is a extended version of the first one that includes a value factor(HML) in addition to the constant and a the market factor. 
 
-We concentrate solely on the mean of the coefficient vector $\boldsymbol{\gamma}$, however, similar exercise can be done for the precision matrix of errors.
+First, we consider how the factor betas get updated over time:
 \begin{eqnarray*}
 \underset{\text{Stage 1 Prior}}
 {\begin{blockarray}{ccc}
@@ -225,6 +222,69 @@ Durbl & -0.003 & 1.080 & 0.296 \\
 This equation show the evolution of prior for an extended model. 
 We can see that the second stage prior is different from the one we places on a CAPM model. 
 Even though the market factor is also included into this model as well, the prior mean of the market beta is different for both portfolios because of an added factor.
+
+Similarly, we can take look at how the precision matrix $\Omega^{-1}$ is updated. First, consider CAPM:
+\begin{eqnarray*}
+\underset{\text{Stage 1 Prior}}
+{\begin{blockarray}{ccc}
+	& NoDur & Durbl  \\ 
+	\begin{block}{c(cc)}
+	NoDur & 640 & 0 \\ 
+	Durbl & 0 & 640 \\ 
+	\end{block}
+\end{blockarray} }
+\rightarrow
+\underset{\text{Stage 2 Prior}}
+{\begin{blockarray}{ccc}
+& NoDur & Durbl \\ 
+	\begin{block}{c(cc)}
+	NoDur & 3795 & -277 \\ 
+	Durbl & -277 & 1907 \\ 
+	\end{block}
+\end{blockarray} }
+\rightarrow \\
+\rightarrow
+\underset{\text{Posterior}}
+{\begin{blockarray}{ccc}
+	& NoDur & Durbl \\ 
+	\begin{block}{c(cc)}
+	NoDur & 2283 & 155 \\ 
+	Durbl & 155 & 1013 \\ 
+	\end{block}
+\end{blockarray}}
+\end{eqnarray*}
+The following equation shows the changes in the inverse scale matrix for an extended model that includes the value portfolio:
+
+\begin{eqnarray*}
+\underset{\text{Stage 1 Prior}}
+{\begin{blockarray}{ccc}
+& NoDur & Durbl  \\ 
+	\begin{block}{c(cc)}
+	NoDur & 0.000 & 0.000 \\ 
+	Durbl & 0.000 & 0.000 \\ 
+	\end{block}
+\end{blockarray} }
+\rightarrow
+\underset{\text{Stage 2 Prior}}
+{\begin{blockarray}{ccc}
+& NoDur & Durbl \\ 
+	\begin{block}{c(cc)}
+	NoDur & 3864 & -397 \\ 
+	Durbl & -397 & 2045 \\
+	\end{block}
+\end{blockarray} }
+\rightarrow \\
+\rightarrow
+\underset{\text{Posterior}}
+{\begin{blockarray}{ccc}
+& NoDur & Durbl \\ 
+	\begin{block}{c(cc)}
+	NoDur & 2270 & 224 \\ 
+	Durbl & 224 & 1117 \\ 
+	\end{block}
+\end{blockarray}}
+\end{eqnarray*}
+As can be seen the prior for the precision matrix varies with the model.
 
 This example show that the proposed procedure allows automatically specify proper priors for each model.
 

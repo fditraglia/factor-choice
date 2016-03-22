@@ -16,7 +16,7 @@ Second, with so many models under consideration, there is a serious danger of ov
 Indeed, as suggested by \cite{harvey2015and}, many of the novel factors identified in recent years may well be spurious.
 To avoid this problem, any proposed selection procedure should account for the high-dimensional nature of the factor selection problem by appropriately penalizing more complex models relative to simpler ones.
 
-In this paper we take both of these observations to heart, using monthly observations for twelve leading asset pricing factors and ten industry portfolios to carry out an exhaustive Bayesian comparison of 49,152 asset pricing specifications based on a seemingly unrelated regression (SUR) model with Student-t errors.
+In this paper we take both of these observations to heart, using monthly observations for twelve leading asset pricing factors and ten industry portfolios to carry out an exhaustive Bayesian comparison of 98,304 asset pricing specifications based on a seemingly unrelated regression (SUR) model with Student-t errors.
 Ten of the factors used in our exercise are used by \cite{harvey2015lucky} while two others are drawn from different sources.
 Our model comparisons are based on the calculation of Bayesian marginal likelihoods, using the method of \cite{chib1995marginal}.
 Marginal likelihoods automatically penalize models based on complexity, assuring that those with more factors will not rank higher merely because their greater flexibility allows them to fit the noise in the data. 
@@ -24,7 +24,7 @@ Moreover, model selection based on the comparison of marginal likelihoods has at
 If the true model is among the candidates under consideration, marginal likelihood comparisons will select it with probability approaching one in the limit; if it is not among the candidates, they will select the model that is closest to the truth.
 As we show in a calibrated simulation example, marginal likelihood comparisons also perform well in finite samples.
 The flexibility of marginal likelihoods as a tool for model comparison allows us to to simultaneously select over asset pricing factors and features of the error distribution.
-Thus we allow the data to dictate the heaviness of the tails of the return distribution, considering multivariate Student-t distributions with 4, 6, 8, 10, and 12 degrees of freedom in addition to Gaussian errors. 
+Thus we allow the data to dictate the heaviness of the tails of the return distribution, considering multivariate Student-t distributions with 5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5 and 10 degrees of freedom in addition to Gaussian errors. 
 Marginal likelihood comparisons also allow us to ``test'' the factor pricing models under consideration.
 Because all of our candidate factors are returns, factor pricing theory implies that the intercept should be zero for all test portfolios. 
 By comparing identical specifications with and without an intercept, we can determine whether the data supports this prediction of theory.
@@ -33,20 +33,21 @@ Unlike the p-value from a frequentist hypothesis test, which is a probability ca
 Marginal likelihood comparisons require the specification of proper priors.
 Because the meaning and importance of factor coefficients vary by model, however, it would be inappropriate to place priors independently on each factor.
 The same is true for the error precision matrix, which we estimate without restriction from the data rather than, say, restricting to be diagonal: its meaning, too, depends on the model.
-To specify 49,152 priors in an automatic and objective way, we employ a small training sample that precedes our estimation sample.
+To specify 98,304 priors in an automatic and objective way, we employ a small training sample that precedes our estimation sample.
 
 Our paper adds to the growing literature on the use of Bayesian techniques in finance.
 \cite{avramov2002stock} and \cite{cremers2002stock}, for example, use Bayesian model-averaging to explore the question of market-return predictability with multiple predictors, while \cite{shanken1987bayesian}, \cite{harvey1990bayesian} and \cite{avramov2006exact} take a Bayesian approach to consider the question of the significance (or lack thereof) of the intercept in the CAPM context, providing a Bayesian alternative to the frequentist test of this hypothesis developed by \cite{gibbons1989test}.
 
 Our main results are as follows.
-A number of similar factor models find support from the data and are difficult to distinguish empirically: in particular our top four models are practically identical in terms of their marginal likelihoods and differ only slightly in the factors that they contain.
-All of the top twenty models have a Student-t error distribution with 6 or 8 degrees of freedom and include four of the Fama-French \citep{fama1993common,fama2015five} five factors -- namely the market, value (HML), profitability (RMW) and investment (CMA) factors -- along with momentum \citep{carhart1997persistence} and quality \citep{asness2014quality}.
-In contrast, the liquidity factor of \cite{stambaugh2003liquidity} does not appear in any of the top models.
-Intriguingly, our top model includes \emph{two} profitability factors -- the Fama-French RMW factor in addition to ROE, the probability factor suggested by \cite{hou2014digesting} -- and two size factors: the Fama-French HML factor and an alternative version HMLdev proposed by \cite{asness2013devil}. 
+A number of similar factor models find support from the data and are difficult to distinguish empirically: in particular our top two models are practically identical in terms of their marginal likelihoods and differ only slightly in the factors that they contain.
+All of the top thirty models have a Student-t error distribution with 5.5 to 8 degrees of freedom and include all five of the Fama-French \citep{fama1993common,fama2015five} five factors -- namely the market, value (HML), size (SMB), profitability (RMW) and investment (CMA) factors -- along with momentum \citep{carhart1997persistence} and quality \citep{asness2014quality}.
+The liquidity factor of \cite{stambaugh2003liquidity} appears in some of the top models.
+Intriguingly, our top two models include \emph{two} size factors -- the Fama-French SMB factor in addition to ME, the size factor suggested by \cite{hou2014digesting}. 
+They also include \emph{two} profitability based factors: the Fama-French RMW factor and QMJ, quality factor constructed by  \cite{asness2014quality}.
 While these pairs of factors are closely related, they appear to be capturing enough different information to be useful in concert.
-Our top-rated model does not include a constant. 
-Comparing its marginal likelihood to that of an otherwise identical specification \emph{with} a constant, we find a difference of approximately 0.86 on the $\log_{10}$ scale. 
-In other words, the model without a constant is just under ten times more plausible \emph{a posteriori} than the model with a constant.
+Our top-rated models do not include a constant. 
+Comparing its marginal likelihood to that of an otherwise identical specification \emph{with} a constant, we find a difference of approximately 3.79 on the $\log_{10}$ scale. 
+In other words, the model without a constant is just under ten thousand times more plausible \emph{a posteriori} than the model with a constant.
 Based on these results we would \emph{not} have reason to reject the theoretical prediction of the factor pricing model for our selected model.
 
 The remainder of the paper is organized as follows. 

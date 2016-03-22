@@ -381,8 +381,8 @@ Suppose now that the errors follow a multivariate Student-t distribution rather 
   \boldsymbol{\varepsilon}_{t}\sim t_{D,\nu }\left( 0,\Omega \right)
 \end{equation*}
 where $\nu$ denotes the degrees of freedom of the distribution, the location parameter is zero and the scale matrix is $\Omega$.
-If $\nu >1$ then $E(\boldsymbol{\varepsilon}) = 0$. 
-If $\nu>2$ then $Var\left( \boldsymbol{\varepsilon} \right) = \nu \sigma/(n-2)$.
+If $\nu >1$ then $E(\boldsymbol{\varepsilon}_{t}) = 0$. 
+If $\nu>2$ then $Var\left( \boldsymbol{\varepsilon}_{t} \right) = \nu \Omega/(\nu-2)$.
 Replacing the normal likelihood from above with the Student-t likelihood, however, breaks the conditional conjugacy that we exploited above to construct an MCMC algorithm based on the Gibbs sampler.
 The solution to this problem is to work with a hierarchical representation in which the Student-t likelihood is introduced as a scale mixtrure of normal distributions, in particular
 \begin{align*}

@@ -5,14 +5,15 @@ In order to motivate our research we simulate asset returns and demonstrate that
 We intentionally mis-specify the distribution of errors to show that even if the true model is not among the candidates under consideration but the imposed distribution is close enough to the true one, the correct factor structure is selected. 
 In order to address a wide-spread concern that some non-factor assets may be selected if they are correlated with the market, we include such an asset as one of the candidate factors to demonstrate the robustness of the proposed selection procedure.\\
 As asset returns we take 10 value-weighted Fama-French industry portfolios. 
-The returns are assumed to be follow the famous Fama-French 3 factor structure without intercept. The factor include market portfolio (Mkt.RF), size (SMB) and value factors (HML). 
+The returns are assumed to be follow the famous Fama-French 3 factor structure without intercept. The factors include market portfolio (Mkt.RF), size (SMB) and value (HML). 
 The true errors follow Student-t distribution with 2.5 degrees of freedom. 
-The model parameters(coefficient vector $\boldsymbol{\gamma}$ and the error precision matrix $\Omega^{-1}$) are equal posterior means obtained when fitting the model to the real data. 
+The model parameters(coefficient vector $\boldsymbol{\gamma}$ and the error precision matrix $\Omega^{-1}$) are equal to posterior means obtained from fitting the model to the real data. 
 The simulation is based on the sample range Apr 1986 - Dec 2014 (345 observations). 
 The training sample includes observations Apr 1986 - Dec 1990 (57 observations).
-We assume that the true distribution (Student-t with 2.5 degrees of freedom) is not considered. 
-Instead, considered distributions include normal and Student-t with 4, 6, 8, 10 and 12 degrees of freedom. 
-The pool of candidate models includes all combinations of Fama-French 5 factors(Mkt.RF, HML, SMB, RMW and CMA), a constant and a non-factor asset - Microsoft stock (MSFT). We fit in total $6\times 2^{7} = 768$ model. 
+The pool of candidate models includes all combinations of Fama-French 5 factors(Mkt.RF, HML, SMB, RMW and CMA), a constant and a non-factor asset - Microsoft stock (MSFT). 
+We assume that the true distribution of errors (Student-t with 2.5 degrees of freedom) is not considered. 
+Instead, the pool of distributions includes normal and Student-t with 4, 6, 8, 10 and 12 degrees of freedom. 
+We fit in total $6\times 2^{7} = 768$ model. 
 
 
 
@@ -20,17 +21,17 @@ The simulation setup is described below:
 \begin{enumerate}
 	\item Fit the Fama-French three factor model without an intercept to 10 value-weighted industry portfolios using the full sample under the assumption that errors follow Student-t distribution with 2.5 degrees of freedom. 
 	The posterior means $\boldsymbol{\gamma}^*$ and $\Omega^{-1*}$ obtained from the Gibbs sampler as a product of fitting this model are assumed to be the true parameter values for the simulation purposes.
-	\item Simulate a dataset for the full sample range assuming the true parameters  to be equal to the posterior means and that errors follow Student-t distribution with 2.5 degrees of freedom.
+	\item Simulate asset returns for the full sample range. 
+    Errors follow Student-t distribution with 2.5 degrees of freedom with zero mean and scale matrix $\Omega^{*}$:
 	\begin{equation*}
 		\boldsymbol{\varepsilon}^s_{t}\sim t_{10,2.5 }\left( 0,\Omega^* \right)
 	\end{equation*}
-	Simulate returns using the true values of the three Fama-French factors observed in the data :
+	Asset returns follow the factor structure with factor loadings $\boldsymbol{\gamma}^*$. Use true values of the three Fama-French factors observed in the data:
 		\begin{equation*}
 		\mathbf{y}_t^s = X_t \boldsymbol{\gamma}^* + \boldsymbol{\varepsilon}^s_t
 		\end{equation*}
 
-	\item Estimate all candidate models and evaluate the marginal likelihood.
-	Use the training sample to specify priors for each candidate model.
+	\item Estimate all candidate models and evaluate the marginal likelihood employing the training sample to specify priors for each candidate model.
 \end{enumerate}
 
 \begin{sidewaystable}[ht]
@@ -45,14 +46,18 @@ The simulation setup is described below:
 \end{sidewaystable}
 
 
-\begin{table}[ht]$  $
+\begin{sidewaystable}[ht]$  $
 	\centering
 	\input{tables/bestModelsSimul.tex}
 	\caption{Simulation: 20 Best Models}
 	\label{table:bestModelsSimul}
-\end{table}
+\end{sidewaystable}
 
-As can be seen from the simulation results \ref{table:bestModelsSimul} the model with the highest marginal likelihood correctly identified three factors(Mkt.RF, HML and SMB).
+As can be seen from the simulation results \ref{table:bestModelsSimul} the model with the highest marginal likelihood correctly identified the three factors(Mkt.RF, HML and SMB).
 Moreover, even though the true error distribution (Student-t with 2.5 degrees of freedom) was not considered, the distribution of the best model (Student-t with 4 degrees of freedom) is the closest to the truth. 
-Models including non-relevant factors or the non-factor (Microsoft stock) are significantly worse on the log scale.
+The second best model includes the same factors but features Student-t distribution with 6 degrees of freedom. 
+Following models include more factors and/or a constant.
+However, the difference in the marginal likelihood suggests that there is a strong evidence against all the candidate models when compared with the top model.
+Interesting to note that for any value of degrees of freedom $\nu$ in this example the top model always imposes the correct factor structure. 
+Models including the non-factor (Microsoft stock) are not in the list of 30 best models which demonstrates the robustness of the proposed approach.
 This simulation shows that marginal likelihood performs well in the finite sample.

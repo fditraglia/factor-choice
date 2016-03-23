@@ -1,10 +1,10 @@
 %!TEX root = main.tex
 In this paper we use Bayesian methods to revisit a classic question in empirical finance: which asset pricing factors explain the time-series and cross-section behavior of asset returns? 
 To answer this question one must consider an extremely large collection of models formed from all possible subsets of the proposed factors.
-And with so many models under consideration, there is a serious risk of overfitting.
+And with so many models under consideration, there is a serious risk of over-fitting.
 We address this challenging high-dimensional model selection problem by calculating and comparing marginal likelihoods in a Bayesian seemingly unrelated regression (SUR) model with multivariate Student-t errors and an objective, training-sample prior.
 Unlike approaches based on hypothesis testing, marginal likelihood comparisons automatically penalize models based on complexity, avoiding the problem of over-fitting. 
 Our proposed method performs well in a calibrated simulation, selecting the correct model even when we intentionally mis-specify the error distribution.
 We then consider an application using monthly returns for ten industry portfolios and twelve leading asset pricing factors.
-Our exhaustive search over 49,152 models, $2^{13}$ for each of six error specification suggests that, in addition to the usual suspects, profitability and quality are important for explaining the behavior of returns.
+Our exhaustive search over  98,304 models, $2^{13}$ for each of twelve error specification suggests that, in addition to the usual suspects, quality is important for explaining the behavior of returns.
 

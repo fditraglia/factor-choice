@@ -4,36 +4,51 @@
 
 \begin{sidewaystable}[ht]
 	\centering
-	\input{tables/averagePortfolioReturnsMain.tex}
-	\label{table:avPortfolioReturns}	
+	\input{tables/averagePortfolioReturnsMain.tex}	
 	\caption{Average Portfolio Returns}
 	\bigskip\bigskip
-	\input{tables/averageFactorReturnsMain.tex}
-	\caption{Average Factor Returns}
-	\label{table:avFactorReturns}	
+	\input{tables/portfolioCorrelation.tex}
+	\caption{Correlation Matrix of Assets(based on full sample)}
+	\label{table:assetSummaryStats}
 \end{sidewaystable}
 
 \begin{sidewaystable}[ht]
 	\centering
-	\input{tables/factorsCorrelation.tex}
-	\caption{FactorsCorrelation Matrix (based on full sample)}
-	\label{table:correlation}
+	\input{tables/averageFactorReturnsMain.tex}
+	\caption{Average Factor Returns}
+	\bigskip\bigskip
+	\input{tables/factorCorrelation.tex}
+	\caption{Correlation Matrix of Factors (based on full sample)}
+	\label{table:factorSummaryStats}
 \end{sidewaystable}
+
 
 \begin{sidewaystable}[ht]
 	\centering
 	\input{tables/bestModelsMain.tex}
-	\caption{20 Best Models}
+	\caption{30 Best Models}
 	\label{table:bestModels}
 \end{sidewaystable}
 
-Depending on the assets on the left hand side, different models may be selected.
+\begin{sidewaystable}[ht]
+	\centering
+	\input{tables/bestModelGamma.tex}
+	\caption{Coefficients for the Best Model}
+	\bigskip\bigskip
+	\input{tables/bestModelSigma.tex}
+	\caption{Error Covariance Matrix for the Best Model ($\times 10^4$)}
+	\label{table:bestModel}
+\end{sidewaystable}
+
+The choice of the underlying assets is very important because  different models may be selected depending on the left hand side variables.
 We apply our method to 10 value-weighted industry portfolios available at the Kenneth French's website: Consumer NonDurables(NoDur), Consumer Durables(Dur), Manufacturing(Manuf),  Oil, Gas, and Coal Extraction and Products(Enrgy), Business Equipment(HiTec),   Telephone and Television Transmission(Telcm),   Wholesale, Retail, and Some Services (Shops),
 Healthcare, Medical Equipment, and Drugs(Hlth),
 Utilities(Utils), Other(Other). 
-We choose industry-based portfolios instead of characteristics-based portfolios in order to avoid the potential bias that favors models which include factors similar to the sorting used to construct such portfolios.
+We choose industry-based portfolios instead of characteristics-based ones in order to avoid the potential bias that favors models which include factors similar to the sorting used to construct such portfolios. 
+The correlation table and average returns of assets can be found in table \ref{table:assetSummaryStats}.
 
-The 12 candidate factors include (aside from the constant)\footnote{We thank Lu Zhang for providing us the factors constructed in \cite{hou2014digesting}. Other factors are obtained from authors' web-pages.}:
+The 12 candidate factors include (aside from the constant)\footnote{We thank Lu Zhang for providing us the factors constructed in \cite{hou2014digesting}.
+Other factors are obtained from authors' web-pages.}:
 \begin{itemize}
 	\item five factors by \cite{fama1993common} and \cite{fama2015five}: market(Mkt.RF), size(SMB), value(HML), profitability(RMW) and investment(CMA)
 	\item three factors proposed by \cite{hou2014digesting}: size(ME), profitability(ROE) and investment(IA)
@@ -42,34 +57,49 @@ The 12 candidate factors include (aside from the constant)\footnote{We thank Lu 
 	\item quality factor(QMJ) as offered by \cite{asness2014quality}
 	\item alternative value factor(HMLDev) constructed by \cite{asness2013devil}
 \end{itemize}
-The full sample ranges from Jan 1968 - Dec 2014 (564 observations). The training sample is Jan 1968 - Dec 1979(144 observation). 
-
-We report the mean returns for the assets and factors in tables \ref{table:avPortfolioReturnsMain} and \ref{table:avFactorReturnsMain}. As can be seen from the correlation matrix \ref{table:correlation}, many factors co-move together. 
+We use monthly data with the full sample ranging from Jan 1982 - Dec 2014 (396 observations). The training sample is Jan 1982 - Dec 1989 (96 observation). 
+Mean returns of factors and their correlation structure are reported in table \ref{table:factorSummaryStats}.
+As can be seen from the correlation matrix, many factors co-move together. 
 Sometimes this correlation arises because of the conceptual similarity of the factors. 
-In our sample we have two highly correlated size factors: SMB by \cite{fama2015five} and ME by \cite{hou2014digesting}. Another cluster of factors is related to value and investment activity. 
+In our sample we have two highly correlated size factors: SMB by \cite{fama2015five} and ME by \cite{hou2014digesting} (correlation is 0.97). 
+Another cluster of factors is related to value and investment activity. 
 We include two value factors (HML by \cite{fama2015five} and HMLDev by \cite{asness2013devil}) and two investment factors(CMA by \cite{fama2015five} and IA by \cite{hou2014digesting}). 
 Finally, we have three profitability-based factors: RMW by \cite{fama2015five}, ROE by \cite{hou2014digesting} and QMJ by \cite{asness2014quality}.  
-The question of joint rather than individual significance is especially relevant for this set up given so many correlated factors. 
+The question of joint rather than individual significance is especially relevant for this setup given so many correlated factors. 
 
 \subsection{Results}
-In total we explore $2^{13}$ models and consider 6 possible distribution of errors: Student-t with 4, 6, 8, 10 and 12 degrees of freedom and normal. 
+In total we explore $2^{13}$ models and consider 12 possible distribution of errors: Student-t with 5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5 , 9, 9.5 and 10 degrees of freedom and normal. 
 As can be seen from the table \ref{table:bestModels}, the suggested number of factors is quite large. 
-E.g. the top model features 9 factors. 
-Best four models are difficult to distinguish as they are similarly supported by the data. 
-However, they have many features in common, in particular, the best models always include four out of the five
-\cite{fama2015five} factors (everything except SMB), along with momentum, and
-quality minus junk. 
-Liquidity factor \cite{stambaugh2003liquidity} is never selected.
-Usually only one size factor (either SMB or ME) is included. 
-However, multiple factors from other groups may be simultaneously selected.
-This is particularly true for profitability-based factors (at least two RMW by \cite{fama2015five} and QMJ by \cite{asness2014quality} are always included). 
-The same holds for two value factors: HML by \cite{fama2015five} and HMLDev by \cite{asness2013devil}. 
-Out of two investment factors the preference is given to the \cite{fama2015five} CMA. 
-Multiple conceptually similar factors may be selected if they reflect different information which makes them jointly useful in explaining the cross-section of returns.
+The top-ranked model features 9 out of 12 factors: all five Fama-French factors, momentum, liquidity, quality and a duplicate size factor ME (we call it 9 factor model).
+The preferred number of degrees of freedom is 6, however, other values ranging from 5.5 to 7.5 are also supported by the data.
 
-All four best models don't include an intercept. 
+The second best model includes the same factors except for liquidity (henceforth, 8 factor model). 
+This factor structure favors 6.5 degrees of freedom but all the other values in the interval 5.5 to 7.5 again cannot be rejected. 
+These two models with 9 and 8 factors cannot be distinguished well: the difference in the marginal likelihood given the preferred error distribution is $3000.40 - 3000.02 = 0.38$ on the $\log_{10}$ scale.
+
+The next best model replaces duplicate size factor with a duplicate profitability factor and features Student-t distribution with 7 degrees of freedom. With the marginal likelihood difference $3000.40 - 2998.54 = 1.86$ and $3000.02 - 2998.54 = 1.48$, there is very strong evidence against this model in favor of the 9 and 8 factor models. 
+Thus, it can be concluded that the data supports two models with 8 or 9 factors while the suggested error distribution is Student-t with 6 or 6.5 degrees of freedom.  
+
+Note that the model ranking in this framework  may change depending on the distributional assumption.
+For example, under the normally distributed errors there is substantial evidence in the support of the 8 factor model over the 9 factor model with the difference of $0.91$ on the $\log_{10}$ scale. 
+The best model with Gaussian errors delivers the marginal log likelihood of $2950.60$  and this error specification is strongly rejected in favor of the Student-t.
+
+Two best models don't include a constant. 
 Consider the best model and compare it with an alternative specification that includes the same factors and a constant.
-The difference between these two models is approximately 0.86 on the $\log_{10}$ scale which can be interpreted as substantial support for the model without a constant by the Jeffrey's scale. 
-This finding suggests that we can not reject the hypothesis that the intercept should not be included into the model.
+The difference between these two models is approximately $3000.40 - 2996.61 = 3.79$ on the $\log_{10}$ scale which can be interpreted as a decisive support for the model without a constant by the Jeffrey's scale. 
+This finding suggests that we can not reject the hypothesis that the intercept should not be included into the model. 
+This result is especially notable as our selection criteria are not based on the mis-pricing represented by the intercept as, for example, in \cite{harvey2015lucky}.
+\subsection{Top Model}
+The 9 factor model multiple factors from each cluster. 
+It features two size factors -- SMB and ME, two factors from the value-investment group -- HML and CMA, and two profitability-based factors -- RMW and QMJ. 
+It also includes market, momentum and liquidity.
+The presence of duplicate factors is probably explained by the fact that they are imperfect proxies for the underlying "true" latent factor. As each of these factors adds some new information about the true latent factor, all of them should be included despite of the similarity. 
+Coefficients and error covariance matrix computed from the posterior means can be found in table \ref{table:bestModel}.
 
+We find size factor to be important which is consistent with findings in \cite{asness2014quality} that the presence of the quality factor resurrects the size effect. 
+\todo[inline]{the coefficients for SMB and ME seem to cancel each other out??}
+
+The presence of two profitability-based factors (RMW and QMJ) may be partially due to the value-weighting approach used to construct testing portfolios. 
+Profitability factors were also identified by \cite{harvey2015lucky} for the value-weighted portfolios.
+They attribute this to the fact that larger firms that have bigger influence for value-weighted portfolios have fewer frictions and thus function in accordance with firm-investment theories that motivate the construction of the profitability factors.
 

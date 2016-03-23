@@ -146,7 +146,7 @@ For this reason we form the prior in terms of the posterior mean of ${\Omega}^{-
 The prior is constructed to set the mean of the precision matrix $\Omega^{-1}$ equal to the posterior mean based on the training sample. 
 Again, the tightness of the prior is controlled by degrees of freedom parameter $\rho_{0}$. 
 
-For all the applications we use $C_{4} = 3$ and $C_5 = 6$.
+For all the applications in this paper we use $C_{4} = 2$ and $C_5 = 15$.
 
 \subsection{Training Sample Prior: An Example}
 Here we illustrate the process of setting model specific priors and show how priors vary by the model depending on the included factors.
@@ -154,7 +154,7 @@ Here we illustrate the process of setting model specific priors and show how pri
 For simplicity consider a hypothetical example with the cross-section of returns consisting only of  two assets: industry portfolios for durable(Durbl) and non-durable consumer goods (NoDur).
 We fit two models.
 First model is a usual CAPM that includes an intercept and a market portfolio(Mkt.RF). 
-An second model is a extended version of the first one that includes a value factor(HML) in addition to the constant and a the market factor. 
+A second model is an extended version of the first one that includes a value factor(HML) in addition to the constant and the market factor. 
 
 First, we consider how the factor betas get updated over time:
 \begin{eqnarray*}
@@ -188,8 +188,9 @@ First, we consider how the factor betas get updated over time:
 \end{eqnarray*}
 This equation demonstrates the update of beliefs about the CAPM coefficients.
 The first stage prior is centered around zero for all coefficients. 
-The second stage prior based on the training sample reflects the peculiarities of the data. 
+The second stage prior based on the training sample reflects the peculiarities of the data: e.g. the market beta for non-durable goods got updated from 0 to 0.992. 
 Finally, the posterior is an updated mean based on the estimation sample. 
+E.g. the market beta for non-durable goods was corrected from 0.992 to 0.793 to reflect the lower market risk associated with this asset that can be observed in the estimation sample.
 \begin{eqnarray*}
 \underset{\text{Stage 1 Prior}}
 {\begin{blockarray}{cccc}
@@ -219,9 +220,13 @@ Durbl & -0.003 & 1.080 & 0.296 \\
 	\end{block}
 \end{blockarray} }
 \end{eqnarray*}
-This equation show the evolution of prior for an extended model. 
-We can see that the second stage prior is different from the one we places on a CAPM model. 
-Even though the market factor is also included into this model as well, the prior mean of the market beta is different for both portfolios because of an added factor.
+This equation shows the evolution of prior for an extended model. 
+We can see that the second stage prior is different from the one we place on a CAPM model. 
+Even though the market factor is included into both models, the prior mean of the market beta is now different for both portfolios than it was before because of an added factor.  
+For instance, the market beta for non-durable goods was set to be zero in both models in the first stage prior.
+The second stage prior values are model-specific: 0.992 for the CAPM and 0.981 for the extended model.
+This results into a different albeit close posterior mean of the beta:  0.807 vs.  0.792.
+This example shows that priors of the coefficient vectors vary by the model even the two models include the same factors.
 
 Similarly, we can take look at how the precision matrix $\Omega^{-1}$ is updated. First, consider CAPM:
 \begin{eqnarray*}
@@ -284,7 +289,7 @@ The following equation shows the changes in the inverse scale matrix for an exte
 	\end{block}
 \end{blockarray}}
 \end{eqnarray*}
-As can be seen the prior for the precision matrix varies with the model.
+As can be seen the prior for the precision matrix varies with the model as well. 
 
-This example show that the proposed procedure allows automatically specify proper priors for each model.
+This example show that the proposed procedure allows to automatically specify proper priors for each model.
 
